@@ -1,3 +1,6 @@
 data/raw/*.csv
 __pycache__
 *.vscode
+*.pkl
+*.geojson
+*.zip

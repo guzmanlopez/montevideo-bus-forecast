@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "montevideo_bus_forecast"
 version = "0.1.0"
-description = "Trabajo final curso Aprendizaje Automático para Datos en Grafos de la Facultad de Ingeniería de la Universidad de la República"
+description = "Trabajo final del curso Aprendizaje Automático para Datos en Grafos de la Facultad de Ingeniería de la Universidad de la República"
 authors = ["Guzmán López <guzmanlop@protonmail.com>"]
 
 [tool.poetry.dependencies]
@@ -11,6 +11,9 @@ typer = "^0.3.2"
 pretty-errors = "^1.2.19"
 pandas = "^1.2.3"
 geopandas = "^0.9.0"
+altair = "^4.1.0"
+pygeos = "^0.9"
+matplotlib = "^3.4.1"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.21.0"
