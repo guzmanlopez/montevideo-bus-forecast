@@ -12,7 +12,7 @@ def msg_write(message: str = ""):
 
 
 def msg_done(message: str = "Done!"):
-    typer.secho(f"✅ {message}", fg=typer.colors.BRIGHT_GREEN)
+    typer.secho(f"✅ {message} \n", fg=typer.colors.BRIGHT_GREEN)
 
 
 def msg_load(message: str = ""):
@@ -23,3 +23,7 @@ def msg_load(message: str = ""):
 def msg_process(message: str = ""):
     typer.secho("⚙️ Processing...", fg=typer.colors.BRIGHT_YELLOW, bold=True)
     typer.secho(f"{message}", fg=typer.colors.YELLOW)
+
+
+def msg_bus(bus_line: str = ""):
+    typer.secho(f"🚌 {bus_line}", fg=typer.colors.BRIGHT_YELLOW, bold=True)

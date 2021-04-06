@@ -5,6 +5,9 @@ import geopandas as gpd
 import pandas as pd
 from src.preparation.constants import (
     DF_STM_VIAJES_COLS,
+    FILE_BUS_STOP_ORDERED,
+    FILE_BUS_STOP_PROC,
+    FILE_BUS_TRACK_PROC,
     FILE_STM_HORARIOS_BUSES_PARADAS,
     FILE_STM_PARADAS,
     FILE_STM_RECORRIDOS,
@@ -13,7 +16,7 @@ from src.preparation.constants import (
     PROCESSED_DATA_PATH,
     RAW_DATA_PATH,
 )
-from src.preparation.typer_messages import msg_done, msg_load, msg_write
+from src.preparation.typer_messages import msg_bus, msg_done, msg_load, msg_write
 
 
 def write_file_from_response(response, output: str):
@@ -59,6 +62,22 @@ def load_stm_bus_stops() -> gpd.GeoDataFrame:
 def load_stm_bus_line_track() -> gpd.GeoDataFrame:
     file_path = Path(RAW_DATA_PATH) / f"{FILE_STM_RECORRIDOS}.geojson"
     msg_load(f"Loading {file_path}...")
+    gdf = gpd.read_file(file_path)
+    msg_done()
+    return gdf
+
+
+def load_spatial_line(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame:
+    msg_bus(bus_line)
+    if type == "bus_stop":
+        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_BUS_STOP_PROC}_{bus_line}.geojson"
+        msg_load(f"Loading BUS STOP {file_path}...")
+    elif type == "bus_line":
+        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_BUS_TRACK_PROC}_busline_{bus_line}.geojson"
+        msg_load(f"Loading BUS TRACK {file_path}...")
+    elif type == "bus_stop_ordered":
+        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_BUS_STOP_ORDERED}_{bus_line}.geojson"
+        msg_load(f"Loading BUS TRACK ORDERED {file_path}...")
     gdf = gpd.read_file(file_path)
     msg_done()
     return gdf

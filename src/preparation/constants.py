@@ -19,7 +19,9 @@ RAW_DATA_PATH = "./data/raw/"
 PROCESSED_DATA_PATH = "./data/processed/"
 PROCESSED_FILE = "df_stm_bus_proc"
 SNAP_FILE = "snap_bus_stops_to_bus_track"
-POINTS_IN_TRACK_FILE = "points_in_track"
+FILE_BUS_TRACK_PROC = "bus_track_proc"
+FILE_BUS_STOP_PROC = "bus_stops_proc"
+FILE_BUS_STOP_ORDERED = "bus_stop_ordered"
 
 # Parameters
 MONTH = "octubre"
@@ -43,3 +45,5 @@ DAY_NAME_MAPPING = {
     "Saturday": "Sábado",
     "Sunday": "Domingo",
 }
+
+BUS_LINES = ["103", "G", "183", "185", "306", "145", "163", "137", "405", "110"]
