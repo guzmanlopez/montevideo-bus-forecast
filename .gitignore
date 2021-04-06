@@ -1,6 +1,6 @@
 data/raw/*.csv
+data/raw/*.geojson
 __pycache__
 *.vscode
 *.pkl
-*.geojson
 *.zip

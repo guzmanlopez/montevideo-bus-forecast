@@ -37,7 +37,7 @@ def snap_points2lines(
     gdf_snap_points.set_geometry(col="geometry", inplace=True)
 
     if write:
-        output = Path(PROCESSED_DATA_PATH) / f"{SNAP_FILE}_{bus_line}"
+        output = Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{SNAP_FILE}_{bus_line}"
         write_spatial(gdf_snap_points, output)
 
     msg_done()
@@ -157,7 +157,8 @@ def cut_tracks_by_bus_stops(
 
     if write:
         write_spatial(
-            gdf_lines, Path(PROCESSED_DATA_PATH) / f"{FILE_BUS_TRACK_PROC}_busline_{bus_line}"
+            gdf_lines,
+            Path(PROCESSED_DATA_PATH) / "bus_tracks" / f"{FILE_BUS_TRACK_PROC}_busline_{bus_line}",
         )
 
     msg_done()
@@ -210,7 +211,8 @@ def build_bus_line_tracks_and_stops(
 
     if write:
         write_spatial(
-            gdf_bus_stops_filtered, Path(PROCESSED_DATA_PATH) / f"{FILE_BUS_STOP_PROC}_{bus_line}"
+            gdf_bus_stops_filtered,
+            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_PROC}_{bus_line}",
         )
 
     return gdf_bus_stops_filtered, gdf_bus_tracks_by_stops
@@ -362,7 +364,8 @@ def get_order_of_bus_stops_along_track(
 
     if write:
         write_spatial(
-            gdf_stops_sorted, Path(PROCESSED_DATA_PATH) / f"{FILE_BUS_STOP_ORDERED}_{bus_line}"
+            gdf_stops_sorted,
+            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}",
         )
 
     msg_done()
