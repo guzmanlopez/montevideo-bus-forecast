@@ -70,13 +70,21 @@ def load_stm_bus_line_track() -> gpd.GeoDataFrame:
 def load_spatial_line(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame:
     msg_bus(bus_line)
     if type == "bus_stop":
-        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_BUS_STOP_PROC}_{bus_line}.geojson"
+        file_path = (
+            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_PROC}_{bus_line}.geojson"
+        )
         msg_load(f"Loading BUS STOP {file_path}...")
     elif type == "bus_line":
-        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_BUS_TRACK_PROC}_busline_{bus_line}.geojson"
+        file_path = (
+            Path(PROCESSED_DATA_PATH)
+            / "bus_tracks"
+            / f"{FILE_BUS_TRACK_PROC}_busline_{bus_line}.geojson"
+        )
         msg_load(f"Loading BUS TRACK {file_path}...")
     elif type == "bus_stop_ordered":
-        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_BUS_STOP_ORDERED}_{bus_line}.geojson"
+        file_path = (
+            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}.geojson"
+        )
         msg_load(f"Loading BUS TRACK ORDERED {file_path}...")
     gdf = gpd.read_file(file_path)
     msg_done()
