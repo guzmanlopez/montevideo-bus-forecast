@@ -272,3 +272,23 @@ linked_bus_stops = shared_bus_stops.loc[
 
 
 connection_matrix.loc[linked_bus_stops, linked_bus_stops]
+
+
+# %%
+import geopandas as gpd
+
+points = load_spatial_line("G", "bus_stop_snap")
+lines = load_spatial_line("G", "bus_line_ordered")
+
+# Add buffer to bus track to match again the snap of bus stops
+line_buffer = lines.copy()
+line_buffer = gpd.GeoDataFrame(line_buffer, geometry=line_buffer.buffer(0.01), crs=CRS)
+
+gdf_stops_sorted = gpd.sjoin(points, line_buffer, how="left", op="within")
+gdf_stops_sorted = gdf_stops_sorted.dropna()
+
+gdf_stops_sorted = gdf_stops_sorted.sort_values("id").reset_index(drop=True)
+gdf_stops_sorted["id_new"] = gdf_stops_sorted.index
+gdf_stops_sorted.drop(columns="index_right")
+
+# %%

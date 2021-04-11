@@ -14,10 +14,10 @@ from src.preparation.constants import (
     CRS,
     FILE_BUS_STOP_ORDERED,
     FILE_BUS_STOP_PROC,
+    FILE_BUS_STOP_SNAP,
     FILE_BUS_TRACK_ORDERED,
     FILE_BUS_TRACK_PROC,
     PROCESSED_DATA_PATH,
-    SNAP_FILE,
 )
 from src.preparation.typer_messages import msg_bus, msg_done, msg_info, msg_process, msg_warn
 from src.preparation.utils import write_spatial
@@ -36,9 +36,10 @@ def snap_points2lines(
         axis=1,
     )
     gdf_snap_points.set_geometry(col="geometry", inplace=True)
+    gdf_snap_points = gdf_snap_points.set_crs(CRS)
 
     if write:
-        output = Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{SNAP_FILE}_{bus_line}"
+        output = Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_SNAP}_{bus_line}"
         write_spatial(gdf_snap_points, output)
 
     msg_done()
@@ -224,7 +225,7 @@ def sort_points_along_line_nn(
     neighbors: int = 5,
 ) -> gpd.GeoDataFrame:
 
-    msg_process("Sort points along a line using Nearest Neighbors and minimum path cost")
+    msg_process("Sort points along a path using Nearest Neighbors and minimizing path cost")
     msg_info(f"Using {neighbors} neighbors")
 
     # Get points coordinates for each line segment
@@ -249,11 +250,12 @@ def sort_points_along_line_nn(
         list(nx.dfs_preorder_nodes(G=T, source=i, depth_limit=len(T))) for i in range(len(points))
     ]
     max_len = len(max(paths, key=len))
+    msg = f"{max_len}/{points.shape[0]} nodes used to calculate shortest path"
 
-    if (max_len / points.shape[0]) != 1:
-        msg_warn(f"{max_len}/{points.shape[0]} nodes used to calculate shortest path")
+    if (max_len / points.shape[0]) == 1:
+        msg_info(msg)
     else:
-        msg_info(f"{max_len}/{points.shape[0]} nodes were used to calculate shortest path")
+        msg_warn(msg)
 
     min_dist = np.inf
     min_idx = 0
@@ -387,24 +389,20 @@ def get_order_of_bus_stops_along_track(
     # Snap bus stations to new bus track
     gdf_stops_snap = snap_points2lines(gdf_bus_stops, gdf_track_sorted_lines, write=True)
 
-    # Add buffer to bus track to match again the snap of bus stops
-    gdf_track_buffer = gdf_track_sorted.copy()
-    gdf_track_buffer = gpd.GeoDataFrame(
-        gdf_track_buffer, geometry=gdf_track_buffer.buffer(1), crs=CRS
+    # Add buffer to bus track to match the snap of bus stops
+    gdf_track_sorted_lines_buffer = gdf_track_sorted_lines.copy()
+    gdf_track_sorted_lines_buffer = gpd.GeoDataFrame(
+        gdf_track_sorted_lines_buffer,
+        geometry=gdf_track_sorted_lines_buffer.buffer(0.01, cap_style=2),
+        crs=CRS,
     )
 
-    gdf_stops_sorted = (
-        gpd.overlay(
-            gdf_stops_snap,
-            gdf_track_buffer,
-            "intersection",
-        )
-        .sort_values("id")
-        .reset_index(drop=True)
+    gdf_stops_sorted = gpd.sjoin(
+        gdf_stops_snap, gdf_track_sorted_lines_buffer, how="left", op="intersects"
     )
-    print(gdf_stops_sorted)
-    gdf_stops_sorted["id"] = gdf_stops_sorted.index
-    print(gdf_stops_sorted)
+    gdf_stops_sorted = gdf_stops_sorted.sort_values("id").reset_index(drop=True)
+    gdf_stops_sorted["idx"] = gdf_stops_sorted.index
+    gdf_stops_sorted.drop(columns="index_right")
 
     if write:
         write_spatial(

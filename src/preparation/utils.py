@@ -7,6 +7,8 @@ from src.preparation.constants import (
     DF_STM_VIAJES_COLS,
     FILE_BUS_STOP_ORDERED,
     FILE_BUS_STOP_PROC,
+    FILE_BUS_STOP_SNAP,
+    FILE_BUS_TRACK_ORDERED,
     FILE_BUS_TRACK_PROC,
     FILE_STM_HORARIOS_BUSES_PARADAS,
     FILE_STM_PARADAS,
@@ -90,11 +92,26 @@ def load_spatial_line(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
         )
         msg_bus_track("Bus tracks")
         msg_load(f"Loading file {file_path}...")
+    elif type == "bus_line_ordered":
+        file_path = (
+            Path(PROCESSED_DATA_PATH)
+            / "bus_tracks"
+            / f"{FILE_BUS_TRACK_ORDERED}_{bus_line}.geojson"
+        )
+        msg_bus_track("Bus tracks")
+        msg_load(f"Loading file {file_path}...")
     elif type == "bus_stop_ordered":
         file_path = (
             Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}.geojson"
         )
-        msg_load(f"Loading BUS TRACK ORDERED {file_path}...")
+        msg_bus_stop("Bus stops")
+        msg_load(f"Loading file {file_path}...")
+    elif type == "bus_stop_snap":
+        file_path = (
+            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_SNAP}_{bus_line}.geojson"
+        )
+        msg_bus_stop("Bus stops")
+        msg_load(f"Loading file {file_path}...")
     gdf = gpd.read_file(file_path)
     msg_done()
     return gdf

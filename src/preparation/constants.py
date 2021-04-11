@@ -18,7 +18,7 @@ FILE_STM_RECORRIDOS = "stm_recorridos"
 RAW_DATA_PATH = "./data/raw/"
 PROCESSED_DATA_PATH = "./data/processed/"
 PROCESSED_FILE = "df_stm_bus_proc"
-SNAP_FILE = "snap_bus_stops_to_bus_track"
+FILE_BUS_STOP_SNAP = "snap_bus_stops_to_bus_track"
 FILE_BUS_TRACK_PROC = "bus_track_proc"
 FILE_BUS_STOP_PROC = "bus_stops_proc"
 FILE_BUS_STOP_ORDERED = "bus_stop_ordered"
@@ -26,7 +26,13 @@ FILE_BUS_TRACK_ORDERED = "bus_track_ordered"
 
 # Parameters
 MONTH = "octubre"
-CRS = 32721
+CRS = "EPSG:32721"
+
+# Get bus stations ordered by bus track
+METHOD = "nn"
+NEIGHBORS = 3
+LINE_LENGTH_THRESHOLD = 5
+LINE_DENSIFY = 5
 TOLERANCE_DIST = 5
 
 # Process data
