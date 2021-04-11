@@ -26,7 +26,7 @@ from src.preparation.utils import write_spatial
 def snap_points2lines(
     gdf_points: gpd.GeoDataFrame, gdf_tracks: gpd.GeoDataFrame, write: bool = True
 ):
-    bus_line = gdf_points["DESC_LINEA"][0]
+    bus_line = gdf_points["DESC_LINEA"].unique()[0]
     msg_process("Snap bus stations to bus tracks")
 
     track = gdf_tracks["geometry"].unary_union
@@ -350,7 +350,7 @@ def get_order_of_bus_stops_along_track(
     simplify_tolerance_dist: float = 10,
     write: bool = True,
 ) -> gpd.GeoDataFrame:
-    bus_line = gdf_bus_stops["DESC_LINEA"][0]
+    bus_line = gdf_bus_stops["DESC_LINEA"].unique()[0]
     msg_bus(bus_line)
     msg_process("Get order of bus stops along bus track")
     msg_warn("This operation can take some time \n")
@@ -360,7 +360,8 @@ def get_order_of_bus_stops_along_track(
     if line_length_threshold is not None:
         msg_process("Densyfing bus track by adding points at equal intervals")
         msg_info(f"Densify line lengths equal or above {line_length_threshold} meters")
-        msg_info(f"Add points every {line_densify} meters \n")
+        msg_info(f"Add points every {line_densify} meters")
+        initial_number_of_points = sum([len(line.coords) for line in linestrings])
         # Get line segments from bus line track
         linestrings = [
             densify_linestring(line, line_densify)
@@ -369,6 +370,12 @@ def get_order_of_bus_stops_along_track(
             for line in linestrings
         ]
         linestrings = MultiLineString(linestrings)
+        final_number_of_points = sum([len(line.coords) for line in linestrings])
+        points_added = final_number_of_points - initial_number_of_points
+        perc_added = 100 * (points_added / initial_number_of_points)
+        msg_info(
+            f"Added {points_added} new points of {initial_number_of_points} initial points ({round(perc_added, 1)}%) \n"
+        )
 
     if method == "pca":
         gdf_track_sorted = sort_points_along_line_pca(linestrings)
@@ -433,6 +440,15 @@ def simplify_linestring(
     gdf_line: gpd.GeoDataFrame, simplify_tolerance_dist: float
 ) -> MultiLineString:
     msg_process("Simplifying bus track")
-    msg_info(f"Using {simplify_tolerance_dist} meters of tolerance \n")
-    simple_line = ops.linemerge(gdf_line["geometry"].unary_union).simplify(simplify_tolerance_dist)
+    msg_info(f"Using {simplify_tolerance_dist} meters of tolerance")
+    union_line = gdf_line["geometry"].unary_union
+    simple_line = ops.linemerge(union_line).simplify(simplify_tolerance_dist)
+    # Messages
+    initial_number_of_points = sum([len(line.coords) for line in union_line])
+    final_number_of_points = sum([len(line.coords) for line in simple_line])
+    points_removed = initial_number_of_points - final_number_of_points
+    perc_removed = 100 * (points_removed / initial_number_of_points)
+    msg_info(
+        f"Removed {points_removed} points of {initial_number_of_points} ({round(perc_removed, 1)}%) \n"
+    )
     return simple_line

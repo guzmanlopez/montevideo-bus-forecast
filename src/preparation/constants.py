@@ -31,9 +31,72 @@ CRS = "EPSG:32721"
 # Get bus stations ordered by bus track
 METHOD = "nn"
 NEIGHBORS = 3
-LINE_LENGTH_THRESHOLD = 5
+LINE_LENGTH_THRES = 5
 LINE_DENSIFY = 5
 TOLERANCE_DIST = 5
+
+BUS_LINE_TRACK_PARS = {
+    "103": {
+        "neighbors": NEIGHBORS,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
+    "G": {
+        "neighbors": NEIGHBORS,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
+    "183": {
+        "neighbors": NEIGHBORS,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
+    "185": {
+        "neighbors": NEIGHBORS,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
+    "306": {
+        "neighbors": NEIGHBORS,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
+    "145": {
+        "neighbors": NEIGHBORS + 3,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST - 3,
+    },
+    "163": {
+        "neighbors": NEIGHBORS,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
+    "137": {
+        "neighbors": NEIGHBORS + 1,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
+    "405": {
+        "neighbors": NEIGHBORS,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
+    "110": {
+        "neighbors": NEIGHBORS,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
+}
 
 # Process data
 DF_STM_VIAJES_COLS = [
@@ -55,4 +118,5 @@ DAY_NAME_MAPPING = {
     "Sunday": "Domingo",
 }
 
-BUS_LINES = ["103", "G", "183", "185", "306", "145", "163", "137", "405", "110"]
+# BUS_LINES = ["103", "G", "183", "185", "306", "145", "163", "137", "405", "110"]
+BUS_LINES = ["183", "185", "306", "145", "163", "137", "405", "110"]

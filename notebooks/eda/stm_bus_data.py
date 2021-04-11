@@ -166,7 +166,7 @@ all_bus_tracks = all_bus_tracks.set_crs(CRS)
 
 
 # %%
-bus_line = "G"
+bus_line = "137"
 gdf_stops = all_bus_stops.loc[all_bus_stops["DESC_LINEA"] == bus_line, :]
 gdf_track = all_bus_tracks.loc[all_bus_tracks["line"] == bus_line, :]
 
@@ -282,13 +282,13 @@ lines = load_spatial_line("G", "bus_line_ordered")
 
 # Add buffer to bus track to match again the snap of bus stops
 line_buffer = lines.copy()
-line_buffer = gpd.GeoDataFrame(line_buffer, geometry=line_buffer.buffer(0.01), crs=CRS)
+line_buffer = gpd.GeoDataFrame(line_buffer, geometry=line_buffer.buffer(1), crs=CRS)
 
 gdf_stops_sorted = gpd.sjoin(points, line_buffer, how="left", op="within")
 gdf_stops_sorted = gdf_stops_sorted.dropna()
 
-gdf_stops_sorted = gdf_stops_sorted.sort_values("id").reset_index(drop=True)
-gdf_stops_sorted["id_new"] = gdf_stops_sorted.index
+# gdf_stops_sorted = gdf_stops_sorted.sort_values("id").reset_index(drop=True)
+# gdf_stops_sorted["id_new"] = gdf_stops_sorted.index
 gdf_stops_sorted.drop(columns="index_right")
 
 # %%
