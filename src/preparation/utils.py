@@ -16,7 +16,14 @@ from src.preparation.constants import (
     PROCESSED_DATA_PATH,
     RAW_DATA_PATH,
 )
-from src.preparation.typer_messages import msg_bus, msg_done, msg_load, msg_write
+from src.preparation.typer_messages import (
+    msg_bus,
+    msg_bus_stop,
+    msg_bus_track,
+    msg_done,
+    msg_load,
+    msg_write,
+)
 
 
 def write_file_from_response(response, output: str):
@@ -28,7 +35,7 @@ def write_file_from_response(response, output: str):
 
 def write_spatial(gdf: gpd.GeoDataFrame, output: str):
     gdf.to_file(f"{output}.geojson", driver="GeoJSON")
-    msg_write(f"  To: {output}")
+    msg_write(f"Saved to: {output}.geojson")
 
 
 def load_stm_bus_data(month: str = MONTH, sample: int = None) -> pd.DataFrame:
@@ -73,14 +80,16 @@ def load_spatial_line(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
         file_path = (
             Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_PROC}_{bus_line}.geojson"
         )
-        msg_load(f"Loading BUS STOP {file_path}...")
+        msg_bus_stop("Bus stops")
+        msg_load(f"Loading file {file_path}...")
     elif type == "bus_line":
         file_path = (
             Path(PROCESSED_DATA_PATH)
             / "bus_tracks"
             / f"{FILE_BUS_TRACK_PROC}_busline_{bus_line}.geojson"
         )
-        msg_load(f"Loading BUS TRACK {file_path}...")
+        msg_bus_track("Bus tracks")
+        msg_load(f"Loading file {file_path}...")
     elif type == "bus_stop_ordered":
         file_path = (
             Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}.geojson"

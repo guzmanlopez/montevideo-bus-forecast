@@ -3,7 +3,6 @@
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32721" } },
 "features": [
 { "type": "Feature", "properties": { "DESC_LINEA": "185", "COD_UBIC_P": 553.0 }, "geometry": { "type": "Point", "coordinates": [ 577248.186047041905113, 6138608.645341644063592 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "185", "COD_UBIC_P": 554.0 }, "geometry": { "type": "Point", "coordinates": [ 577529.290024317335337, 6138432.877005684189498 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "185", "COD_UBIC_P": 1060.0 }, "geometry": { "type": "Point", "coordinates": [ 567314.15613654081244, 6140482.844289661385119 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "185", "COD_UBIC_P": 1061.0 }, "geometry": { "type": "Point", "coordinates": [ 567512.448530898662284, 6140510.663625292479992 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "185", "COD_UBIC_P": 1062.0 }, "geometry": { "type": "Point", "coordinates": [ 567707.243568924255669, 6140539.674195438623428 ] } },

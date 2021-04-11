@@ -22,9 +22,12 @@ SNAP_FILE = "snap_bus_stops_to_bus_track"
 FILE_BUS_TRACK_PROC = "bus_track_proc"
 FILE_BUS_STOP_PROC = "bus_stops_proc"
 FILE_BUS_STOP_ORDERED = "bus_stop_ordered"
+FILE_BUS_TRACK_ORDERED = "bus_track_ordered"
 
 # Parameters
 MONTH = "octubre"
+CRS = 32721
+TOLERANCE_DIST = 5
 
 # Process data
 DF_STM_VIAJES_COLS = [

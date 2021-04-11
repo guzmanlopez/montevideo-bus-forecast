@@ -11,27 +11,28 @@ from shapely.geometry.multilinestring import MultiLineString
 from sklearn.decomposition import PCA
 from sklearn.neighbors import NearestNeighbors
 from src.preparation.constants import (
+    CRS,
     FILE_BUS_STOP_ORDERED,
     FILE_BUS_STOP_PROC,
+    FILE_BUS_TRACK_ORDERED,
     FILE_BUS_TRACK_PROC,
     PROCESSED_DATA_PATH,
     SNAP_FILE,
 )
-from src.preparation.typer_messages import msg_bus, msg_done, msg_process
+from src.preparation.typer_messages import msg_bus, msg_done, msg_info, msg_process, msg_warn
 from src.preparation.utils import write_spatial
 
 
 def snap_points2lines(
-    gdf_points: gpd.GeoDataFrame, gdf_lines: gpd.GeoDataFrame, write: bool = True
+    gdf_points: gpd.GeoDataFrame, gdf_tracks: gpd.GeoDataFrame, write: bool = True
 ):
     bus_line = gdf_points["DESC_LINEA"][0]
-    msg_bus(bus_line)
-    msg_process("snap_points2lines")
+    msg_process("Snap bus stations to bus tracks")
 
+    track = gdf_tracks["geometry"].unary_union
     gdf_snap_points = gdf_points.copy()
-    line_union = ops.linemerge(gdf_lines["geometry"].unary_union)
     gdf_snap_points["geometry"] = gdf_snap_points.apply(
-        lambda row: line_union.interpolate(line_union.project(row["geometry"])),
+        lambda row: track.interpolate(track.project(row["geometry"])),
         axis=1,
     )
     gdf_snap_points.set_geometry(col="geometry", inplace=True)
@@ -78,7 +79,7 @@ def get_longest_track_from_bus_line(gdf_bus_tracks: gpd.GeoDataFrame) -> gpd.Geo
 
     # Bind tracks
     gdf_union = gpd.overlay(gdf_origin, gdf_destination, how="union")
-    gdf_union = gpd.GeoDataFrame(geometry=[gdf_union.unary_union], crs=32721)
+    gdf_union = gpd.GeoDataFrame(geometry=[gdf_union.unary_union], crs=CRS)
 
     msg_done()
     return gdf_union
@@ -104,7 +105,7 @@ def cut(line: LineString, distance: float):
 def cut_tracks_by_bus_stops(
     gdf_bus_stops: gpd.GeoDataFrame,
     gdf_bus_tracks: gpd.GeoDataFrame,
-    crs: int = 32721,
+    crs: int = CRS,
     write: bool = True,
 ) -> gpd.GeoDataFrame:
     # Get bus line name
@@ -203,7 +204,7 @@ def build_bus_line_tracks_and_stops(
     )
 
     # Remove not matched bus stops by using a buffer from bus track
-    line_buff = gpd.GeoDataFrame(geometry=gdf_bus_tracks_by_stops.buffer(buffer), crs=32721)
+    line_buff = gpd.GeoDataFrame(geometry=gdf_bus_tracks_by_stops.buffer(buffer), crs=CRS)
     bus_stops = gpd.overlay(gdf_bus_stops_filtered, line_buff)["COD_UBIC_P"].unique()
     gdf_bus_stops_filtered = gdf_bus_stops_filtered.loc[
         gdf_bus_stops_filtered["COD_UBIC_P"].isin(bus_stops), :
@@ -219,52 +220,55 @@ def build_bus_line_tracks_and_stops(
 
 
 def sort_points_along_line_nn(
-    bus_line_track: gpd.GeoDataFrame,
-    n_neighbors: int = 5,
+    bus_line_track: MultiLineString,
+    neighbors: int = 5,
 ) -> gpd.GeoDataFrame:
 
-    bus_line = bus_line_track["line"][0]
-    msg_bus(bus_line)
-    msg_process("sort_points_along_line")
-
-    # Get line segments from bus line track
-    list_of_lines = [line for line in bus_line_track["geometry"]]
+    msg_process("Sort points along a line using Nearest Neighbors and minimum path cost")
+    msg_info(f"Using {neighbors} neighbors")
 
     # Get points coordinates for each line segment
     x, y = [], []
 
-    for line in list_of_lines:
+    for line in bus_line_track:
         x_coords, y_coords = line.coords.xy
         x += x_coords
         y += y_coords
 
     df_xy = pd.DataFrame({"x": x, "y": y}).drop_duplicates().reset_index(drop=True)
-
     x, y = df_xy["x"].values, df_xy["y"].values
     points = np.c_[x, y]
 
     # Create n-NN graph between nodes
-    clf = NearestNeighbors(n_neighbors=n_neighbors).fit(points)
+    clf = NearestNeighbors(n_neighbors=neighbors, algorithm="brute", n_jobs=-1).fit(points)
     G = clf.kneighbors_graph()
-    T = nx.from_scipy_sparse_matrix(G)
+    T = nx.from_scipy_sparse_matrix(G, create_using=nx.DiGraph)
 
     # Find the path with smallest cost from all sources
-    paths = [list(nx.dfs_preorder_nodes(T, i)) for i in range(len(points))]
+    paths = [
+        list(nx.dfs_preorder_nodes(G=T, source=i, depth_limit=len(T))) for i in range(len(points))
+    ]
+    max_len = len(max(paths, key=len))
 
-    mindist = np.inf
-    minidx = 0
+    if (max_len / points.shape[0]) != 1:
+        msg_warn(f"{max_len}/{points.shape[0]} nodes used to calculate shortest path")
+    else:
+        msg_info(f"{max_len}/{points.shape[0]} nodes were used to calculate shortest path")
+
+    min_dist = np.inf
+    min_idx = 0
 
     for i in range(len(points)):
-        p = paths[i]  # order of nodes
-        ordered = points[p]  # ordered nodes
-        # Find cost of that order by the sum of euclidean distances between points (i) and (i+1)
-        cost = (((ordered[:-1] - ordered[1:]) ** 2).sum(1)).sum()
-        if cost < mindist:
-            mindist = cost
-            minidx = i
+        node_order = paths[i]
+        if len(node_order) == max_len:
+            ordered = points[node_order]
+            # Find cost of order by the sum of euclidean distances between points (i) and (i+1)
+            cost = (((ordered[:-1] - ordered[1:]) ** 2).sum(1)).sum()
+            if cost < min_dist:
+                min_dist = cost
+                min_idx = i
 
-    # Reconstruct the order
-    opt_order = paths[minidx]
+    opt_order = paths[min_idx]
     xx = x[opt_order]
     yy = y[opt_order]
 
@@ -272,26 +276,25 @@ def sort_points_along_line_nn(
     df_xy_sort = pd.DataFrame({"id": range(0, len(xx)), "x": xx, "y": yy})
     gdf_xy_sort = gpd.GeoDataFrame(
         df_xy_sort[["id"]],
-        geometry=gpd.points_from_xy(df_xy_sort["x"], df_xy_sort["y"]),
-        crs=32721,
+        geometry=gpd.points_from_xy(df_xy_sort["x"], df_xy_sort["y"], crs=CRS),
+        crs=CRS,
     )
 
     msg_done()
     return gdf_xy_sort
 
 
-def sort_points_along_line_pca(bus_line_track: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+def sort_points_along_line_pca(
+    bus_line_track: MultiLineString,
+) -> gpd.GeoDataFrame:
     bus_line = bus_line_track["line"][0]
     msg_bus(bus_line)
-    msg_process("sort_points_along_line_pca")
-
-    # Get line segments from bus line track
-    list_of_lines = [line for line in bus_line_track["geometry"]]
+    msg_process("Sort bus stops along bus tracks using PCA")
 
     # Get points coordinates for each line segment
     x, y = [], []
 
-    for line in list_of_lines:
+    for line in bus_line_track:
         x_coords, y_coords = line.coords.xy
         x += x_coords
         y += y_coords
@@ -300,6 +303,7 @@ def sort_points_along_line_pca(bus_line_track: gpd.GeoDataFrame) -> gpd.GeoDataF
 
     x, y = df_xy["x"].values, df_xy["y"].values
     xy = np.concatenate((x.reshape(-1, 1), y.reshape(-1, 1)), axis=1)
+    print(f"{xy.size} points")
 
     # Make PCA object
     pca = PCA(2)
@@ -326,8 +330,8 @@ def sort_points_along_line_pca(bus_line_track: gpd.GeoDataFrame) -> gpd.GeoDataF
     df_xy_sort = pd.DataFrame({"id": range(0, len(xc)), "x": xc, "y": yc})
     gdf_xy_sort = gpd.GeoDataFrame(
         df_xy_sort[["id"]],
-        geometry=gpd.points_from_xy(df_xy_sort["x"], df_xy_sort["y"]),
-        crs=32721,
+        geometry=gpd.points_from_xy(df_xy_sort["x"], df_xy_sort["y"], crs=CRS),
+        crs=CRS,
     )
 
     msg_done()
@@ -337,36 +341,100 @@ def sort_points_along_line_pca(bus_line_track: gpd.GeoDataFrame) -> gpd.GeoDataF
 def get_order_of_bus_stops_along_track(
     gdf_bus_stops: gpd.GeoDataFrame,
     gdf_bus_track: gpd.GeoDataFrame,
-    mode: str = "pca",
-    nn: int = 5,
+    method: str = "nn",
+    neighbors: int = 8,
+    line_densify: int = 10,
+    line_length_threshold: int = None,
+    simplify_tolerance_dist: float = 10,
     write: bool = True,
 ) -> gpd.GeoDataFrame:
     bus_line = gdf_bus_stops["DESC_LINEA"][0]
     msg_bus(bus_line)
-    msg_process("get_order_of_bus_stops_along_track\n")
-    gdf_stops_snap = snap_points2lines(gdf_bus_stops, gdf_bus_track, write=write)
+    msg_process("Get order of bus stops along bus track")
+    msg_warn("This operation can take some time \n")
 
-    if mode == "pca":
-        gdf_track_sorted = sort_points_along_line_pca(gdf_bus_track)
-    elif mode == "nn":
-        gdf_track_sorted = sort_points_along_line_nn(gdf_bus_track, nn)
+    linestrings = simplify_linestring(gdf_bus_track, simplify_tolerance_dist)
+
+    if line_length_threshold is not None:
+        msg_process("Densyfing bus track by adding points at equal intervals")
+        msg_info(f"Densify line lengths equal or above {line_length_threshold} meters")
+        msg_info(f"Add points every {line_densify} meters \n")
+        # Get line segments from bus line track
+        linestrings = [
+            densify_linestring(line, line_densify)
+            if line.length >= line_length_threshold
+            else line
+            for line in linestrings
+        ]
+        linestrings = MultiLineString(linestrings)
+
+    if method == "pca":
+        gdf_track_sorted = sort_points_along_line_pca(linestrings)
+    elif method == "nn":
+        gdf_track_sorted = sort_points_along_line_nn(linestrings, neighbors)
+
+    track_sorted_lines = []
+
+    for i in range(0, (len(gdf_track_sorted) - 1)):
+        p_start = gdf_track_sorted.iloc[[i]]["geometry"].values[0]
+        p_end = gdf_track_sorted.iloc[[i + 1]]["geometry"].values[0]
+        line = LineString([p_start, p_end])
+        track_sorted_lines.append(line)
+
+    gdf_track_sorted_lines = gpd.GeoDataFrame(geometry=track_sorted_lines, crs=CRS)
+    gdf_track_sorted_lines["id"] = gdf_track_sorted_lines.index
+
+    # Snap bus stations to new bus track
+    gdf_stops_snap = snap_points2lines(gdf_bus_stops, gdf_track_sorted_lines, write=True)
+
+    # Add buffer to bus track to match again the snap of bus stops
+    gdf_track_buffer = gdf_track_sorted.copy()
+    gdf_track_buffer = gpd.GeoDataFrame(
+        gdf_track_buffer, geometry=gdf_track_buffer.buffer(1), crs=CRS
+    )
 
     gdf_stops_sorted = (
         gpd.overlay(
             gdf_stops_snap,
-            gpd.GeoDataFrame(gdf_track_sorted, geometry=gdf_track_sorted.buffer(0.01), crs=32721),
-            "identity",
+            gdf_track_buffer,
+            "intersection",
         )
-        .sort_values("id", ascending=False)
+        .sort_values("id")
         .reset_index(drop=True)
     )
+    print(gdf_stops_sorted)
     gdf_stops_sorted["id"] = gdf_stops_sorted.index
+    print(gdf_stops_sorted)
 
     if write:
         write_spatial(
             gdf_stops_sorted,
             Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}",
         )
+        write_spatial(
+            gdf_track_sorted_lines,
+            Path(PROCESSED_DATA_PATH) / "bus_tracks" / f"{FILE_BUS_TRACK_ORDERED}_{bus_line}",
+        )
 
     msg_done()
     return gdf_stops_sorted
+
+
+def densify_linestring(line: LineString, x: int = 10) -> LineString:
+    # Create a linespace of points every x meters
+    lenspace = np.linspace(0, line.length, int(line.length / x) + 1)
+    new_points = []
+    for space in lenspace:
+        new_point = line.interpolate(space)
+        new_points.append(new_point)
+    dense_line = LineString(new_points)
+    return dense_line
+
+
+def simplify_linestring(
+    gdf_line: gpd.GeoDataFrame, simplify_tolerance_dist: float
+) -> MultiLineString:
+    msg_process("Simplifying bus track")
+    msg_info(f"Using {simplify_tolerance_dist} meters of tolerance \n")
+    simple_line = ops.linemerge(gdf_line["geometry"].unary_union).simplify(simplify_tolerance_dist)
+    return simple_line

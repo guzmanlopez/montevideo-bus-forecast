@@ -5,7 +5,12 @@
 
 import geopandas as gpd
 import pandas as pd
-from src.preparation.constants import BUS_LINES, DAY_NAME_MAPPING, PROCESSED_FILE
+from notebooks.eda.plots import (
+    plot_boardings_by_day_name,
+    plot_boardings_by_hour_and_day_name,
+    plot_boardings_by_time,
+)
+from src.preparation.constants import BUS_LINES, CRS, DAY_NAME_MAPPING, PROCESSED_FILE
 from src.preparation.utils import (
     load_pickle_file,
     load_spatial_line,
@@ -20,12 +25,6 @@ from src.processing.utils import (
     get_order_of_bus_stops_along_track,
     sort_points_along_line_nn,
     sort_points_along_line_pca,
-)
-
-from plots import (
-    plot_boardings_by_day_name,
-    plot_boardings_by_hour_and_day_name,
-    plot_boardings_by_time,
 )
 
 # %%
@@ -121,17 +120,18 @@ save_pickle_file(df_proc, PROCESSED_FILE)
 df_proc = load_pickle_file(PROCESSED_FILE)
 
 # Load bus stops
-gdf_bus_stops = load_stm_bus_stops()
+# gdf_bus_stops = load_stm_bus_stops()
 
 # Load bus tracks
-gdf_bus_tracks = load_stm_bus_line_track()
+# gdf_bus_tracks = load_stm_bus_line_track()
 
 # Add fix to 183 because part of it track was not found
-gdf_bus_tracks.loc[gdf_bus_tracks["COD_VAR_01"] == 7603, "DESC_VARIA"] = "A"
-gdf_bus_tracks.loc[gdf_bus_tracks["COD_VAR_01"] == 7603, "COD_VAR_01"] = 8401
+# gdf_bus_tracks.loc[gdf_bus_tracks["COD_VAR_01"] == 7603, "DESC_VARIA"] = "A"
+# gdf_bus_tracks.loc[gdf_bus_tracks["COD_VAR_01"] == 7603, "COD_VAR_01"] = 8401
 
+# %%
 # Build tracks
-for bus_line in [BUS_LINES[2]]:
+for bus_line in BUS_LINES:
     df_proc_filtered = df_proc.loc[df_proc["dsc_linea"] == bus_line, :]
     sevar_codigo = df_proc_filtered["sevar_codigo"].unique().tolist()
     build_bus_line_tracks_and_stops(
@@ -141,40 +141,38 @@ for bus_line in [BUS_LINES[2]]:
 # %%
 # Read all bus stops by bus line from geojson files
 all_bus_stops = gpd.GeoDataFrame()
-
 for bus_line in BUS_LINES:
     all_bus_stops = all_bus_stops.append(load_spatial_line(bus_line, type="bus_stop"))
-all_bus_stops = all_bus_stops.set_crs(32721)
+all_bus_stops = all_bus_stops.set_crs(CRS)
 
-# %%
 # Read all bus tracks by bus line from geojson files
 all_bus_tracks = gpd.GeoDataFrame()
-
 for bus_line in BUS_LINES:
     df = load_spatial_line(bus_line, type="bus_line")
     df["line"] = bus_line
     all_bus_tracks = all_bus_tracks.append(df)
-all_bus_tracks = all_bus_tracks.set_crs(32721)
+all_bus_tracks = all_bus_tracks.set_crs(CRS)
 
 # %%
 # Get order of points in track
-for bus_line in BUS_LINES:
-    gdf_stops = all_bus_stops.loc[all_bus_stops["DESC_LINEA"] == bus_line, :]
-    gdf_track = all_bus_tracks.loc[all_bus_tracks["line"] == bus_line, :]
+# for bus_line in BUS_LINES:
+#     gdf_stops = all_bus_stops.loc[all_bus_stops["DESC_LINEA"] == bus_line, :]
+#     gdf_track = all_bus_tracks.loc[all_bus_tracks["line"] == bus_line, :]
 
-    if bus_line == "G":
-        get_order_of_bus_stops_along_track(gdf_stops, gdf_track, mode="nn", nn=8, write=True)
-    else:
-        get_order_of_bus_stops_along_track(gdf_stops, gdf_track, write=True)
+#     if bus_line in [""]:
+#         get_order_of_bus_stops_along_track(gdf_stops, gdf_track, mode="nn", nn=8, write=True)
+#     elif bus_line in [""]:
+#         get_order_of_bus_stops_along_track(gdf_stops, gdf_track, mode="pca", write=True)
 
 
 # %%
-# TODO: check order in lines
 bus_line = "G"
 gdf_stops = all_bus_stops.loc[all_bus_stops["DESC_LINEA"] == bus_line, :]
 gdf_track = all_bus_tracks.loc[all_bus_tracks["line"] == bus_line, :]
-get_order_of_bus_stops_along_track(gdf_stops, gdf_track, mode="nn", nn=8, write=True)
 
+# Filter bus stops that are present in the main data df_proc
+cod_paradas = df_proc.loc[df_proc["dsc_linea"] == bus_line, "codigo_parada_origen"].unique()
+gdf_stops = gdf_stops.loc[gdf_stops["COD_UBIC_P"].isin(cod_paradas), :]
 
 # %%
 # TODO: overlay gdf_bus_track / gdf_track_sorted y medir distancias entre paradas sumando distancias entre puntos
