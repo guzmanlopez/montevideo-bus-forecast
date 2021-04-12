@@ -76,14 +76,26 @@ def load_stm_bus_line_track() -> gpd.GeoDataFrame:
     return gdf
 
 
-def load_spatial_line(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame:
+def load_spatial_data(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame:
     msg_bus(bus_line)
     if type == "bus_stop":
         file_path = (
             Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_PROC}_{bus_line}.geojson"
         )
         msg_bus_stop("Bus stops")
-        msg_load(f"Loading file {file_path}...")
+
+    elif type == "bus_stop_ordered":
+        file_path = (
+            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}.geojson"
+        )
+        msg_bus_stop("Bus stops")
+
+    elif type == "bus_stop_snap":
+        file_path = (
+            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_SNAP}_{bus_line}.geojson"
+        )
+        msg_bus_stop("Bus stops")
+
     elif type == "bus_line":
         file_path = (
             Path(PROCESSED_DATA_PATH)
@@ -91,7 +103,7 @@ def load_spatial_line(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
             / f"{FILE_BUS_TRACK_PROC}_busline_{bus_line}.geojson"
         )
         msg_bus_track("Bus tracks")
-        msg_load(f"Loading file {file_path}...")
+
     elif type == "bus_line_ordered":
         file_path = (
             Path(PROCESSED_DATA_PATH)
@@ -99,19 +111,8 @@ def load_spatial_line(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
             / f"{FILE_BUS_TRACK_ORDERED}_{bus_line}.geojson"
         )
         msg_bus_track("Bus tracks")
-        msg_load(f"Loading file {file_path}...")
-    elif type == "bus_stop_ordered":
-        file_path = (
-            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}.geojson"
-        )
-        msg_bus_stop("Bus stops")
-        msg_load(f"Loading file {file_path}...")
-    elif type == "bus_stop_snap":
-        file_path = (
-            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_SNAP}_{bus_line}.geojson"
-        )
-        msg_bus_stop("Bus stops")
-        msg_load(f"Loading file {file_path}...")
+
+    msg_load(f"Loading file {file_path}...")
     gdf = gpd.read_file(file_path)
     msg_done()
     return gdf

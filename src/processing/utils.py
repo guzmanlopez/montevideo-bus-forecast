@@ -11,16 +11,23 @@ from shapely.geometry.multilinestring import MultiLineString
 from sklearn.decomposition import PCA
 from sklearn.neighbors import NearestNeighbors
 from src.preparation.constants import (
+    BUFFER,
+    BUS_LINES,
     CRS,
     FILE_BUS_STOP_ORDERED,
     FILE_BUS_STOP_PROC,
     FILE_BUS_STOP_SNAP,
     FILE_BUS_TRACK_ORDERED,
     FILE_BUS_TRACK_PROC,
+    LINE_DENSIFY,
+    LINE_LENGTH_THRES,
+    METHOD,
+    NEIGHBORS,
     PROCESSED_DATA_PATH,
+    TOLERANCE_DIST,
 )
 from src.preparation.typer_messages import msg_bus, msg_done, msg_info, msg_process, msg_warn
-from src.preparation.utils import write_spatial
+from src.preparation.utils import load_spatial_data, write_spatial
 
 
 def snap_points2lines(
@@ -171,7 +178,7 @@ def build_bus_line_tracks_and_stops(
     gdf_bus_stops: gpd.GeoDataFrame,
     gdf_bus_tracks: gpd.GeoDataFrame,
     sevar_codigo: List[int],
-    buffer: float = 40,
+    buffer: float = BUFFER,
     write: bool = True,
     bus_line: str = "",
 ) -> Tuple:
@@ -216,13 +223,12 @@ def build_bus_line_tracks_and_stops(
             gdf_bus_stops_filtered,
             Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_PROC}_{bus_line}",
         )
-
     return gdf_bus_stops_filtered, gdf_bus_tracks_by_stops
 
 
 def sort_points_along_line_nn(
     bus_line_track: MultiLineString,
-    neighbors: int = 5,
+    neighbors: int = NEIGHBORS,
 ) -> gpd.GeoDataFrame:
 
     msg_process("Sort points along a path using Nearest Neighbors and minimizing path cost")
@@ -343,11 +349,11 @@ def sort_points_along_line_pca(
 def get_order_of_bus_stops_along_track(
     gdf_bus_stops: gpd.GeoDataFrame,
     gdf_bus_track: gpd.GeoDataFrame,
-    method: str = "nn",
-    neighbors: int = 8,
-    line_densify: int = 10,
-    line_length_threshold: int = None,
-    simplify_tolerance_dist: float = 10,
+    method: str = METHOD,
+    neighbors: int = NEIGHBORS,
+    line_densify: int = LINE_DENSIFY,
+    line_length_threshold: int = LINE_LENGTH_THRES,
+    simplify_tolerance_dist: float = TOLERANCE_DIST,
     write: bool = True,
 ) -> gpd.GeoDataFrame:
     bus_line = gdf_bus_stops["DESC_LINEA"].unique()[0]
@@ -425,7 +431,7 @@ def get_order_of_bus_stops_along_track(
     return gdf_stops_sorted
 
 
-def densify_linestring(line: LineString, x: int = 10) -> LineString:
+def densify_linestring(line: LineString, x: int = LINE_DENSIFY) -> LineString:
     # Create a linespace of points every x meters
     lenspace = np.linspace(0, line.length, int(line.length / x) + 1)
     new_points = []
@@ -437,7 +443,7 @@ def densify_linestring(line: LineString, x: int = 10) -> LineString:
 
 
 def simplify_linestring(
-    gdf_line: gpd.GeoDataFrame, simplify_tolerance_dist: float
+    gdf_line: gpd.GeoDataFrame, simplify_tolerance_dist: float = TOLERANCE_DIST
 ) -> MultiLineString:
     msg_process("Simplifying bus track")
     msg_info(f"Using {simplify_tolerance_dist} meters of tolerance")
@@ -452,3 +458,113 @@ def simplify_linestring(
         f"Removed {points_removed} points of {initial_number_of_points} ({round(perc_removed, 1)}%) \n"
     )
     return simple_line
+
+
+def build_adyacency_matrix(
+    control: bool = False,
+    diff_value: int = 50,
+    bus_stop_code_control_1: int = 1283,
+    bus_stop_code_control_2: int = 1284,
+) -> pd.DataFrame:
+
+    msg_process("Building adyacency matrix")
+    # Get all ordered bus stops and bus tracks from files
+    all_bus_stops_ordered, all_bus_tracks_ordered = gpd.GeoDataFrame(), gpd.GeoDataFrame()
+    for bus_line in BUS_LINES:
+        gdf_bus_stop_ordered = load_spatial_data(bus_line, type="bus_stop_ordered")
+        all_bus_stops_ordered = all_bus_stops_ordered.append(gdf_bus_stop_ordered)
+        gdf_bus_track_ordered = load_spatial_data(bus_line, type="bus_line_ordered")
+        gdf_bus_track_ordered["DESC_LINEA"] = bus_line
+        all_bus_tracks_ordered = all_bus_tracks_ordered.append(gdf_bus_track_ordered)
+    all_bus_stops_ordered = all_bus_stops_ordered.set_crs(CRS)
+    all_bus_stops_ordered = all_bus_stops_ordered.astype({"COD_UBIC_P": "int"})
+    all_bus_tracks_ordered = all_bus_tracks_ordered.set_crs(CRS)
+
+    # Build initial Adyacency matrix structure
+    all_bus_stops_unique = all_bus_stops_ordered.copy()
+    all_bus_stops_unique = (
+        all_bus_stops_unique[["COD_UBIC_P"]]
+        .drop_duplicates()
+        .sort_values("COD_UBIC_P", ascending=True)
+        .reset_index(drop=True)
+    )
+
+    all_bus_stops = all_bus_stops_unique["COD_UBIC_P"]
+    ady_mat = pd.DataFrame(np.empty(shape=(len(all_bus_stops), len(all_bus_stops))))
+    ady_mat[:] = np.nan
+    ady_mat.columns = all_bus_stops.tolist()
+    ady_mat.index = all_bus_stops.tolist()
+
+    # Calculate distances between bus stops on each bus line
+    for bus_line in BUS_LINES:
+        gdf_bus_stop_ordered = all_bus_stops_ordered.loc[
+            all_bus_stops_ordered["DESC_LINEA"] == bus_line, :
+        ]
+        gdf_bus_track_ordered = all_bus_tracks_ordered.loc[
+            all_bus_tracks_ordered["DESC_LINEA"] == bus_line, :
+        ]
+
+        # Calculate distance between bus stops using track
+        bus_stops_code = gdf_bus_stop_ordered["COD_UBIC_P"].unique()
+
+        for i in range(0, (len(bus_stops_code) - 1)):
+            bus_stop_start = gdf_bus_stop_ordered.iloc[[i]]
+            bus_stop_end = gdf_bus_stop_ordered.iloc[[i + 1]]
+
+            bus_stop_code_start = bus_stop_start["COD_UBIC_P"].values[0]
+            bus_stop_code_end = bus_stop_end["COD_UBIC_P"].values[0]
+
+            # Get linestrings from bus_tracks data
+            line_pos_start = bus_stop_start["id"].tolist()[0] + 1
+            line_pos_end = bus_stop_end["id"].tolist()[0] - 1
+
+            # Distance between bus stop start and start segment
+            d0 = (
+                bus_stop_start["geometry"]
+                .distance(gdf_bus_track_ordered.loc[line_pos_start, "geometry"])
+                .values[0]
+            )
+
+            # Distances of all the line segments between bus stops
+            d1 = gdf_bus_track_ordered.loc[line_pos_start:line_pos_end, "geometry"].length.sum()
+
+            # Distance between bus stop end and end segment
+            d2 = (
+                bus_stop_end["geometry"]
+                .distance(gdf_bus_track_ordered.loc[line_pos_end, "geometry"])
+                .values[0]
+            )
+
+            # Get final distance
+            dist = round(d0 + d1 + d2, 1)
+
+            if control:
+                # Check when same distance where calculated in various bus_lines
+                if not np.isnan(ady_mat.loc[bus_stop_code_start, bus_stop_code_end]):
+                    val = ady_mat.loc[bus_stop_code_start, bus_stop_code_end]
+                    dif = round(np.abs(val - dist), 1)
+                    if dif >= diff_value:
+                        msg_warn(
+                            f"{dif} m of diff. | {val} m vs {dist} m | bus_line: {bus_line} | "
+                            f"bus stops: {bus_stop_code_start} -> {bus_stop_code_end}"
+                        )
+
+                # Control distance between selected bus stops
+                if (
+                    (bus_stop_code_start == bus_stop_code_control_1)
+                    and (bus_stop_code_end == bus_stop_code_control_2)
+                    or (bus_stop_code_end == bus_stop_code_control_1)
+                    and (bus_stop_code_start == bus_stop_code_control_2)
+                ):
+                    msg_info(
+                        f"Distance between bus stops {bus_stop_code_start} and {bus_stop_code_end}"
+                        f": {dist} m for bus line {bus_line}"
+                    )
+
+            # Fill adyacency matrix
+            ady_mat.loc[bus_stop_code_start, bus_stop_code_start] = 0
+            ady_mat.loc[bus_stop_code_start, bus_stop_code_end] = dist
+            ady_mat.loc[bus_stop_code_end, bus_stop_code_start] = dist
+
+    msg_done()
+    return ady_mat

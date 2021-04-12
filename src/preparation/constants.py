@@ -27,6 +27,7 @@ FILE_BUS_TRACK_ORDERED = "bus_track_ordered"
 # Parameters
 MONTH = "octubre"
 CRS = "EPSG:32721"
+BUFFER = 40
 
 # Get bus stations ordered by bus track
 METHOD = "nn"
@@ -118,5 +119,4 @@ DAY_NAME_MAPPING = {
     "Sunday": "Domingo",
 }
 
-# BUS_LINES = ["103", "G", "183", "185", "306", "145", "163", "137", "405", "110"]
-BUS_LINES = ["183", "185", "306", "145", "163", "137", "405", "110"]
+BUS_LINES = ["103", "G", "183", "185", "306", "145", "163", "137", "405", "110"]
