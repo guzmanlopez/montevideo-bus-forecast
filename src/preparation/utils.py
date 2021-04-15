@@ -72,6 +72,9 @@ def load_stm_bus_line_track() -> gpd.GeoDataFrame:
     file_path = Path(RAW_DATA_PATH) / f"{FILE_STM_RECORRIDOS}.geojson"
     msg_load(f"Loading {file_path}...")
     gdf = gpd.read_file(file_path)
+    # Add fix to 183 because part of it track was not found
+    gdf.loc[gdf["COD_VAR_01"] == 7603, "DESC_VARIA"] = "A"
+    gdf.loc[gdf["COD_VAR_01"] == 7603, "COD_VAR_01"] = 8401
     msg_done()
     return gdf
 
@@ -104,7 +107,7 @@ def load_spatial_data(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
         )
         msg_bus_track("Bus tracks")
 
-    elif type == "bus_line_ordered":
+    elif type == "bus_track_ordered":
         file_path = (
             Path(PROCESSED_DATA_PATH)
             / "bus_tracks"
@@ -121,6 +124,12 @@ def load_spatial_data(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
 def save_pickle_file(df: pd.DataFrame, filename: str):
     file_path = Path(PROCESSED_DATA_PATH) / f"{filename}.pkl"
     df.to_pickle(file_path)
+    msg_done(f"File saved to {file_path}")
+
+
+def save_df_to_csv(df: pd.DataFrame, filename: str):
+    file_path = Path(PROCESSED_DATA_PATH) / f"{filename}.csv"
+    df.to_csv(file_path)
     msg_done(f"File saved to {file_path}")
 
 

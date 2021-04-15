@@ -27,7 +27,12 @@ from src.preparation.constants import (
     TOLERANCE_DIST,
 )
 from src.preparation.typer_messages import msg_bus, msg_done, msg_info, msg_process, msg_warn
-from src.preparation.utils import load_spatial_data, write_spatial
+from src.preparation.utils import (
+    load_spatial_data,
+    load_stm_bus_line_track,
+    load_stm_bus_stops,
+    write_spatial,
+)
 
 
 def snap_points2lines(
@@ -460,6 +465,76 @@ def simplify_linestring(
     return simple_line
 
 
+def fix_bus_stop_order(bus_line: str = "103"):
+    # Load bus tracks
+    gdf_bus_tracks = load_stm_bus_line_track()
+    gdf_origin_bus_stops = gdf_bus_tracks.loc[(gdf_bus_tracks["DESC_VARIA"] == "A"), :]
+    min_ordinal = gdf_origin_bus_stops["ORDINAL_OR"].min()
+
+    gdf_origin_bus_stops = gdf_bus_tracks.loc[
+        (gdf_bus_tracks["ORDINAL_OR"] == min_ordinal), "COD_UBIC_P"
+    ].unique()
+
+    # Load bus stops
+    gdf_bus_stops = load_stm_bus_stops()
+    gdf_origin_bus_stops = gdf_bus_stops.loc[
+        (gdf_bus_stops["DESC_LINEA"] == bus_line)
+        & (gdf_bus_stops["COD_UBIC_P"].isin(gdf_origin_bus_stops)),
+        ["COD_UBIC_P", "geometry"],
+    ].drop_duplicates()
+
+    # Load ordered points
+    gdf_bus_stop_ordered = load_spatial_data(bus_line, type="bus_stop_ordered")
+    origin, end = gdf_bus_stop_ordered.iloc[[0]], gdf_bus_stop_ordered.iloc[[-1]]
+
+    # Calculate distances
+    dist_to_origin_idx = np.array(
+        [
+            point.distance(origin["geometry"].tolist()[0])
+            for point in gdf_origin_bus_stops["geometry"]
+        ]
+    ).min()
+
+    dist_to_end_idx = np.array(
+        [point.distance(end["geometry"].tolist()[0]) for point in gdf_origin_bus_stops["geometry"]]
+    ).min()
+
+    if dist_to_origin_idx > dist_to_end_idx:
+        msg_info("Reorder bus line\n")
+
+        # Reorder bus stops
+        gdf_bus_stop_ordered["idx"] = np.linspace(
+            len(gdf_bus_stop_ordered) - 1, 0, len(gdf_bus_stop_ordered)
+        ).astype("int")
+        gdf_bus_stop_ordered = gdf_bus_stop_ordered.sort_values("idx").reset_index(drop=True)
+
+        # Reorder bus tracks
+        gdf_bus_track_ordered = load_spatial_data(bus_line, type="bus_track_ordered")
+        gdf_bus_track_ordered["id"] = np.linspace(
+            gdf_bus_track_ordered.shape[0] - 1, 0, gdf_bus_track_ordered.shape[0]
+        ).astype("int")
+        gdf_bus_track_ordered = gdf_bus_track_ordered.sort_values("id").reset_index(drop=True)
+        new_linestring_geometry = gdf_bus_track_ordered["geometry"].apply(
+            lambda row: row.coords[::-1]
+        )
+        new_linestring_geometry = [
+            LineString(reveresed_xy) for reveresed_xy in new_linestring_geometry
+        ]
+        gdf_bus_track_ordered = gpd.GeoDataFrame(geometry=new_linestring_geometry, crs=CRS)
+        gdf_bus_track_ordered["id"] = np.linspace(
+            0, gdf_bus_track_ordered.shape[0] - 1, gdf_bus_track_ordered.shape[0]
+        ).astype("int")
+
+        write_spatial(
+            gdf_bus_stop_ordered,
+            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}",
+        )
+        write_spatial(
+            gdf_bus_track_ordered,
+            Path(PROCESSED_DATA_PATH) / "bus_tracks" / f"{FILE_BUS_TRACK_ORDERED}_{bus_line}",
+        )
+
+
 def build_adyacency_matrix(
     control: bool = False,
     diff_value: int = 50,
@@ -467,13 +542,13 @@ def build_adyacency_matrix(
     bus_stop_code_control_2: int = 1284,
 ) -> pd.DataFrame:
 
-    msg_process("Building adyacency matrix")
+    msg_process("Building adyacency matrix\n")
     # Get all ordered bus stops and bus tracks from files
     all_bus_stops_ordered, all_bus_tracks_ordered = gpd.GeoDataFrame(), gpd.GeoDataFrame()
     for bus_line in BUS_LINES:
         gdf_bus_stop_ordered = load_spatial_data(bus_line, type="bus_stop_ordered")
         all_bus_stops_ordered = all_bus_stops_ordered.append(gdf_bus_stop_ordered)
-        gdf_bus_track_ordered = load_spatial_data(bus_line, type="bus_line_ordered")
+        gdf_bus_track_ordered = load_spatial_data(bus_line, type="bus_track_ordered")
         gdf_bus_track_ordered["DESC_LINEA"] = bus_line
         all_bus_tracks_ordered = all_bus_tracks_ordered.append(gdf_bus_track_ordered)
     all_bus_stops_ordered = all_bus_stops_ordered.set_crs(CRS)

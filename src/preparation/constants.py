@@ -23,6 +23,7 @@ FILE_BUS_TRACK_PROC = "bus_track_proc"
 FILE_BUS_STOP_PROC = "bus_stops_proc"
 FILE_BUS_STOP_ORDERED = "bus_stop_ordered"
 FILE_BUS_TRACK_ORDERED = "bus_track_ordered"
+FILE_ADYACENCY_MATRIX = "adyacency_matrix"
 
 # Parameters
 MONTH = "octubre"

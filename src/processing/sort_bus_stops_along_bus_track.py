@@ -2,7 +2,7 @@ import pretty_errors  # noqa
 import typer
 from src.preparation.constants import BUS_LINE_TRACK_PARS, BUS_LINES, METHOD, PROCESSED_FILE
 from src.preparation.utils import load_pickle_file, load_spatial_data
-from src.processing.utils import get_order_of_bus_stops_along_track
+from src.processing.utils import fix_bus_stop_order, get_order_of_bus_stops_along_track
 
 
 def main(bus_line: str = "103", all_lines: bool = False):
@@ -34,6 +34,7 @@ def main(bus_line: str = "103", all_lines: bool = False):
             simplify_tolerance_dist=BUS_LINE_TRACK_PARS.get(bus_line).get("tolerance"),
             write=True,
         )
+        fix_bus_stop_order(bus_line)
 
 
 if __name__ == "__main__":

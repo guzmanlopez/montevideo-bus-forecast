@@ -1,0 +1,21 @@
+import pretty_errors  # noqa
+import typer
+from src.preparation.constants import FILE_ADYACENCY_MATRIX
+from src.preparation.utils import save_df_to_csv
+from src.processing.utils import build_adyacency_matrix
+
+
+def main(
+    control: bool = True,
+    diff_value: int = 50,
+    bus_stop_code_control_1: int = 1283,
+    bus_stop_code_control_2: int = 1284,
+):
+    df_adyacency_matrix = build_adyacency_matrix(
+        control, diff_value, bus_stop_code_control_1, bus_stop_code_control_2
+    )
+    save_df_to_csv(df_adyacency_matrix, FILE_ADYACENCY_MATRIX)
+
+
+if __name__ == "__main__":
+    typer.run(main)

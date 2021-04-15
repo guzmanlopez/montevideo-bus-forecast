@@ -17,10 +17,6 @@ def main(bus_line: str = "103", all_lines: bool = False, write: bool = True):
     # Load bus tracks
     gdf_bus_tracks = load_stm_bus_line_track()
 
-    # Add fix to line 183 because part of it track was not found
-    gdf_bus_tracks.loc[gdf_bus_tracks["COD_VAR_01"] == 7603, "DESC_VARIA"] = "A"
-    gdf_bus_tracks.loc[gdf_bus_tracks["COD_VAR_01"] == 7603, "COD_VAR_01"] = 8401
-
     for bus_line in bus_lines:
         # Build tracks
         df_proc_filtered = df_proc.loc[df_proc["dsc_linea"] == bus_line, :]
