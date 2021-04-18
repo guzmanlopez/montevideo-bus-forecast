@@ -5,11 +5,13 @@ import geopandas as gpd
 import pandas as pd
 from src.preparation.constants import (
     DF_STM_VIAJES_COLS,
+    FILE_ADYACENCY_MATRIX,
     FILE_BUS_STOP_ORDERED,
     FILE_BUS_STOP_PROC,
     FILE_BUS_STOP_SNAP,
     FILE_BUS_TRACK_ORDERED,
     FILE_BUS_TRACK_PROC,
+    FILE_FROM_TO_WEIGHT,
     FILE_STM_HORARIOS_BUSES_PARADAS,
     FILE_STM_PARADAS,
     FILE_STM_RECORRIDOS,
@@ -119,6 +121,17 @@ def load_spatial_data(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
     gdf = gpd.read_file(file_path)
     msg_done()
     return gdf
+
+
+def load_adyacency_data(adyacency: bool = False):
+    if adyacency:
+        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_ADYACENCY_MATRIX}.csv"
+    else:
+        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_FROM_TO_WEIGHT}.csv"
+    msg_load(f"Loading {file_path}...")
+    df = pd.read_csv(file_path, index_col=0)
+    msg_done()
+    return df
 
 
 def save_pickle_file(df: pd.DataFrame, filename: str):
