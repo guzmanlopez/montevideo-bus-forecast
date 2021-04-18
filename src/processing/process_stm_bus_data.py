@@ -24,7 +24,7 @@ def pre_process_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def main(month: str = "octubre"):
+def main(month: str = typer.Option("octubre")):
     df = load_stm_bus_data(month)
     df_proc = pre_process_data(df)
     save_pickle_file(df_proc, PROCESSED_FILE)

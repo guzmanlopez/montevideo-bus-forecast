@@ -1,3 +1,5 @@
+from typing import List
+
 import pretty_errors  # noqa
 import typer
 from src.preparation.constants import BUFFER, BUS_LINES, PROCESSED_FILE
@@ -5,8 +7,7 @@ from src.preparation.utils import load_pickle_file, load_stm_bus_line_track, loa
 from src.processing.utils import build_bus_line_tracks_and_stops
 
 
-def main(bus_line: str = "103", all_lines: bool = False, write: bool = True):
-    bus_lines = BUS_LINES if all_lines else [bus_line]
+def main(bus_lines: List[str] = typer.Option(BUS_LINES), write: bool = typer.Option(True)):
 
     # Load processed file
     df_proc = load_pickle_file(PROCESSED_FILE)

@@ -6,10 +6,10 @@ from src.processing.utils import build_adyacency_matrix
 
 
 def main(
-    control: bool = True,
-    diff_value: int = 50,
-    bus_stop_code_control_1: int = 1283,
-    bus_stop_code_control_2: int = 1284,
+    control: bool = typer.Option(True),
+    diff_value: int = typer.Option(50),
+    bus_stop_code_control_1: int = typer.Option(1283),
+    bus_stop_code_control_2: int = typer.Option(1284),
 ):
     df_adyacency_matrix = build_adyacency_matrix(
         control, diff_value, bus_stop_code_control_1, bus_stop_code_control_2

@@ -25,6 +25,10 @@ FILE_BUS_STOP_ORDERED = "bus_stop_ordered"
 FILE_BUS_TRACK_ORDERED = "bus_track_ordered"
 FILE_ADYACENCY_MATRIX = "adyacency_matrix"
 
+# Fields
+GEOM = "geometry"
+ORDER = "order"
+
 # Parameters
 MONTH = "octubre"
 CRS = "EPSG:32721"
@@ -57,7 +61,7 @@ BUS_LINE_TRACK_PARS = {
         "tolerance": TOLERANCE_DIST,
     },
     "185": {
-        "neighbors": NEIGHBORS,
+        "neighbors": NEIGHBORS + 1,
         "densify": LINE_DENSIFY,
         "length": LINE_LENGTH_THRES,
         "tolerance": TOLERANCE_DIST,

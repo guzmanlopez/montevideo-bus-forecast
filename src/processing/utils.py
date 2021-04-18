@@ -19,10 +19,12 @@ from src.preparation.constants import (
     FILE_BUS_STOP_SNAP,
     FILE_BUS_TRACK_ORDERED,
     FILE_BUS_TRACK_PROC,
+    GEOM,
     LINE_DENSIFY,
     LINE_LENGTH_THRES,
     METHOD,
     NEIGHBORS,
+    ORDER,
     PROCESSED_DATA_PATH,
     TOLERANCE_DIST,
 )
@@ -41,13 +43,13 @@ def snap_points2lines(
     bus_line = gdf_points["DESC_LINEA"].unique()[0]
     msg_process("Snap bus stations to bus tracks")
 
-    track = gdf_tracks["geometry"].unary_union
+    track = gdf_tracks[GEOM].unary_union
     gdf_snap_points = gdf_points.copy()
-    gdf_snap_points["geometry"] = gdf_snap_points.apply(
-        lambda row: track.interpolate(track.project(row["geometry"])),
+    gdf_snap_points[GEOM] = gdf_snap_points.apply(
+        lambda row: track.interpolate(track.project(row[GEOM])),
         axis=1,
     )
-    gdf_snap_points.set_geometry(col="geometry", inplace=True)
+    gdf_snap_points.set_geometry(col=GEOM, inplace=True)
     gdf_snap_points = gdf_snap_points.set_crs(CRS)
 
     if write:
@@ -126,8 +128,8 @@ def cut_tracks_by_bus_stops(
     msg_process("cut_tracks_by_bus_stops for bus line")
 
     # Merge all points and lines
-    points = gdf_bus_stops["geometry"].unary_union
-    multilinestring = ops.linemerge(gdf_bus_tracks["geometry"].unary_union)
+    points = gdf_bus_stops[GEOM].unary_union
+    multilinestring = ops.linemerge(gdf_bus_tracks[GEOM].unary_union)
 
     gdf_lines = gpd.GeoDataFrame()
 
@@ -138,12 +140,10 @@ def cut_tracks_by_bus_stops(
             d = multilinestring.project(point)
             split_line = cut(multilinestring, d)
             if len(split_line) > 1:
-                gdf_line = gpd.GeoDataFrame(
-                    {"line_index": 0, "point_index": j, "geometry": split_line}
-                )
+                gdf_line = gpd.GeoDataFrame({"line_index": 0, "point_index": j, GEOM: split_line})
             else:
                 gdf_line = gpd.GeoDataFrame(
-                    {"line_index": 0, "point_index": None, "geometry": split_line}
+                    {"line_index": 0, "point_index": None, GEOM: split_line}
                 )
             gdf_lines = gdf_lines.append(gdf_line)
     else:
@@ -156,11 +156,11 @@ def cut_tracks_by_bus_stops(
                 split_line = cut(line, d)
                 if len(split_line) > 1:
                     gdf_line = gpd.GeoDataFrame(
-                        {"line_index": i, "point_index": j, "geometry": split_line}
+                        {"line_index": i, "point_index": j, GEOM: split_line}
                     )
                 else:
                     gdf_line = gpd.GeoDataFrame(
-                        {"line_index": i, "point_index": None, "geometry": split_line}
+                        {"line_index": i, "point_index": None, GEOM: split_line}
                     )
                 gdf_lines = gdf_lines.append(gdf_line)
 
@@ -206,7 +206,7 @@ def build_bus_line_tracks_and_stops(
     gdf_bus_stops_filtered = gdf_bus_stops.copy()
     gdf_bus_stops_filtered = gdf_bus_stops.loc[gdf_bus_stops["COD_VARIAN"].isin(cod_varian), :]
     gdf_bus_stops_filtered = (
-        gdf_bus_stops_filtered[["DESC_LINEA", "COD_UBIC_P", "geometry"]]
+        gdf_bus_stops_filtered[["DESC_LINEA", "COD_UBIC_P", GEOM]]
         .drop_duplicates()
         .reset_index(drop=True)
     )
@@ -286,13 +286,12 @@ def sort_points_along_line_nn(
     yy = y[opt_order]
 
     # Convert to spatial
-    df_xy_sort = pd.DataFrame({"id": range(0, len(xx)), "x": xx, "y": yy})
+    df_xy_sort = pd.DataFrame({ORDER: range(0, len(xx)), "x": xx, "y": yy})
     gdf_xy_sort = gpd.GeoDataFrame(
-        df_xy_sort[["id"]],
+        df_xy_sort[[ORDER]],
         geometry=gpd.points_from_xy(df_xy_sort["x"], df_xy_sort["y"], crs=CRS),
         crs=CRS,
     )
-
     msg_done()
     return gdf_xy_sort
 
@@ -340,13 +339,12 @@ def sort_points_along_line_pca(
     xc, yc = xyclean[:, 0], xyclean[:, 1]
 
     # Convert to spatial
-    df_xy_sort = pd.DataFrame({"id": range(0, len(xc)), "x": xc, "y": yc})
+    df_xy_sort = pd.DataFrame({ORDER: range(0, len(xc)), "x": xc, "y": yc})
     gdf_xy_sort = gpd.GeoDataFrame(
-        df_xy_sort[["id"]],
+        df_xy_sort[[ORDER]],
         geometry=gpd.points_from_xy(df_xy_sort["x"], df_xy_sort["y"], crs=CRS),
         crs=CRS,
     )
-
     msg_done()
     return gdf_xy_sort
 
@@ -385,7 +383,8 @@ def get_order_of_bus_stops_along_track(
         points_added = final_number_of_points - initial_number_of_points
         perc_added = 100 * (points_added / initial_number_of_points)
         msg_info(
-            f"Added {points_added} new points of {initial_number_of_points} initial points ({round(perc_added, 1)}%) \n"
+            f"Added {points_added} new points of {initial_number_of_points}"
+            f" initial points ({round(perc_added, 1)}%) \n"
         )
 
     if method == "pca":
@@ -396,13 +395,13 @@ def get_order_of_bus_stops_along_track(
     track_sorted_lines = []
 
     for i in range(0, (len(gdf_track_sorted) - 1)):
-        p_start = gdf_track_sorted.iloc[[i]]["geometry"].values[0]
-        p_end = gdf_track_sorted.iloc[[i + 1]]["geometry"].values[0]
+        p_start = gdf_track_sorted.iloc[[i]][GEOM].values[0]
+        p_end = gdf_track_sorted.iloc[[i + 1]][GEOM].values[0]
         line = LineString([p_start, p_end])
         track_sorted_lines.append(line)
 
     gdf_track_sorted_lines = gpd.GeoDataFrame(geometry=track_sorted_lines, crs=CRS)
-    gdf_track_sorted_lines["id"] = gdf_track_sorted_lines.index
+    gdf_track_sorted_lines[ORDER] = gdf_track_sorted_lines.index
 
     # Snap bus stations to new bus track
     gdf_stops_snap = snap_points2lines(gdf_bus_stops, gdf_track_sorted_lines, write=True)
@@ -416,11 +415,14 @@ def get_order_of_bus_stops_along_track(
     )
 
     gdf_stops_sorted = gpd.sjoin(
-        gdf_stops_snap, gdf_track_sorted_lines_buffer, how="left", op="intersects"
+        gdf_stops_snap,
+        gdf_track_sorted_lines_buffer,
+        how="left",
+        op="intersects",
+        rsuffix="bus_track",
     )
-    gdf_stops_sorted = gdf_stops_sorted.sort_values("id").reset_index(drop=True)
-    gdf_stops_sorted["idx"] = gdf_stops_sorted.index
-    gdf_stops_sorted.drop(columns="index_right")
+    gdf_stops_sorted = gdf_stops_sorted.sort_values(ORDER).reset_index(drop=True)
+    gdf_stops_sorted[ORDER] = gdf_stops_sorted.index
 
     if write:
         write_spatial(
@@ -452,7 +454,7 @@ def simplify_linestring(
 ) -> MultiLineString:
     msg_process("Simplifying bus track")
     msg_info(f"Using {simplify_tolerance_dist} meters of tolerance")
-    union_line = gdf_line["geometry"].unary_union
+    union_line = gdf_line[GEOM].unary_union
     simple_line = ops.linemerge(union_line).simplify(simplify_tolerance_dist)
     # Messages
     initial_number_of_points = sum([len(line.coords) for line in union_line])
@@ -460,12 +462,16 @@ def simplify_linestring(
     points_removed = initial_number_of_points - final_number_of_points
     perc_removed = 100 * (points_removed / initial_number_of_points)
     msg_info(
-        f"Removed {points_removed} points of {initial_number_of_points} ({round(perc_removed, 1)}%) \n"
+        f"Removed {points_removed} points of {initial_number_of_points} "
+        f"({round(perc_removed, 1)}%) \n"
     )
     return simple_line
 
 
-def fix_bus_stop_order(bus_line: str = "103"):
+# TODO: fix 405 and 183 bus lines
+def fix_bus_stop_order(bus_line: str = "103", reorder: bool = False):
+    msg_process("Fix bus stop order by origin")
+
     # Load bus tracks
     gdf_bus_tracks = load_stm_bus_line_track()
     gdf_origin_bus_stops = gdf_bus_tracks.loc[(gdf_bus_tracks["DESC_VARIA"] == "A"), :]
@@ -480,7 +486,7 @@ def fix_bus_stop_order(bus_line: str = "103"):
     gdf_origin_bus_stops = gdf_bus_stops.loc[
         (gdf_bus_stops["DESC_LINEA"] == bus_line)
         & (gdf_bus_stops["COD_UBIC_P"].isin(gdf_origin_bus_stops)),
-        ["COD_UBIC_P", "geometry"],
+        ["COD_UBIC_P", GEOM],
     ].drop_duplicates()
 
     # Load ordered points
@@ -489,48 +495,53 @@ def fix_bus_stop_order(bus_line: str = "103"):
 
     # Calculate distances
     dist_to_origin_idx = np.array(
-        [
-            point.distance(origin["geometry"].tolist()[0])
-            for point in gdf_origin_bus_stops["geometry"]
-        ]
+        [point.distance(origin[GEOM].tolist()[0]) for point in gdf_origin_bus_stops[GEOM]]
     ).min()
 
     dist_to_end_idx = np.array(
-        [point.distance(end["geometry"].tolist()[0]) for point in gdf_origin_bus_stops["geometry"]]
+        [point.distance(end[GEOM].tolist()[0]) for point in gdf_origin_bus_stops[GEOM]]
     ).min()
 
-    if dist_to_origin_idx > dist_to_end_idx:
-        msg_info("Reorder bus line\n")
+    if (dist_to_origin_idx > dist_to_end_idx) or reorder:
+        msg_info("Reorder bus line by origin\n")
 
-        # Reorder bus stops
-        gdf_bus_stop_ordered["idx"] = np.linspace(
-            len(gdf_bus_stop_ordered) - 1, 0, len(gdf_bus_stop_ordered)
-        ).astype("int")
-        gdf_bus_stop_ordered = gdf_bus_stop_ordered.sort_values("idx").reset_index(drop=True)
+        # Reorder bus stops by inverting gdf
+        gdf_bus_stop_ordered = gdf_bus_stop_ordered[::-1].reset_index(drop=True)
+        gdf_bus_stop_ordered.loc[:, ORDER] = gdf_bus_stop_ordered.index
 
-        # Reorder bus tracks
+        # Reorder bus tracks by inverting gdf
         gdf_bus_track_ordered = load_spatial_data(bus_line, type="bus_track_ordered")
-        gdf_bus_track_ordered["id"] = np.linspace(
-            gdf_bus_track_ordered.shape[0] - 1, 0, gdf_bus_track_ordered.shape[0]
-        ).astype("int")
-        gdf_bus_track_ordered = gdf_bus_track_ordered.sort_values("id").reset_index(drop=True)
-        new_linestring_geometry = gdf_bus_track_ordered["geometry"].apply(
-            lambda row: row.coords[::-1]
+        gdf_bus_track_ordered = gdf_bus_track_ordered[::-1].reset_index(drop=True)
+        gdf_bus_track_ordered.loc[:, "new_order"] = gdf_bus_track_ordered.index
+
+        # Fix index_bus_track in bus_stations
+        gdf_bus_stop_ordered = gdf_bus_stop_ordered.merge(
+            gdf_bus_track_ordered[[ORDER, "new_order"]],
+            how="left",
+            left_on="index_bus_track",
+            right_on=ORDER,
         )
-        new_linestring_geometry = [
-            LineString(reveresed_xy) for reveresed_xy in new_linestring_geometry
-        ]
-        gdf_bus_track_ordered = gpd.GeoDataFrame(geometry=new_linestring_geometry, crs=CRS)
-        gdf_bus_track_ordered["id"] = np.linspace(
-            0, gdf_bus_track_ordered.shape[0] - 1, gdf_bus_track_ordered.shape[0]
-        ).astype("int")
+        gdf_bus_stop_ordered["order"] = gdf_bus_stop_ordered["order_x"]
+        gdf_bus_stop_ordered["index_bus_track"] = gdf_bus_stop_ordered["new_order"]
+        gdf_bus_stop_ordered = gdf_bus_stop_ordered.drop(
+            columns=["order_x", "order_y", "new_order"]
+        )
 
         write_spatial(
             gdf_bus_stop_ordered,
             Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}",
         )
+
+        # Fix linestrings geometry
+        new_linestring_geometry = gdf_bus_track_ordered[GEOM].apply(lambda row: row.coords[::-1])
+        new_linestring_geometry = [
+            LineString(reveresed_xy) for reveresed_xy in new_linestring_geometry
+        ]
+        gdf_bus_track_ordered = gpd.GeoDataFrame(geometry=new_linestring_geometry, crs=CRS)
+        gdf_bus_track_ordered.loc[:, ORDER] = gdf_bus_track_ordered.index
+
         write_spatial(
-            gdf_bus_track_ordered,
+            gdf_bus_track_ordered[[ORDER, GEOM]],
             Path(PROCESSED_DATA_PATH) / "bus_tracks" / f"{FILE_BUS_TRACK_ORDERED}_{bus_line}",
         )
 
@@ -565,10 +576,10 @@ def build_adyacency_matrix(
     )
 
     all_bus_stops = all_bus_stops_unique["COD_UBIC_P"]
-    ady_mat = pd.DataFrame(np.empty(shape=(len(all_bus_stops), len(all_bus_stops))))
-    ady_mat[:] = np.nan
-    ady_mat.columns = all_bus_stops.tolist()
-    ady_mat.index = all_bus_stops.tolist()
+    adyacency_mat = pd.DataFrame(np.empty(shape=(len(all_bus_stops), len(all_bus_stops))))
+    adyacency_mat[:] = np.nan
+    adyacency_mat.columns = all_bus_stops.tolist()
+    adyacency_mat.index = all_bus_stops.tolist()
 
     # Calculate distances between bus stops on each bus line
     for bus_line in BUS_LINES:
@@ -590,23 +601,23 @@ def build_adyacency_matrix(
             bus_stop_code_end = bus_stop_end["COD_UBIC_P"].values[0]
 
             # Get linestrings from bus_tracks data
-            line_pos_start = bus_stop_start["id"].tolist()[0] + 1
-            line_pos_end = bus_stop_end["id"].tolist()[0] - 1
+            line_pos_start = bus_stop_start[ORDER].tolist()[0] + 1
+            line_pos_end = bus_stop_end[ORDER].tolist()[0] - 1
 
             # Distance between bus stop start and start segment
             d0 = (
-                bus_stop_start["geometry"]
-                .distance(gdf_bus_track_ordered.loc[line_pos_start, "geometry"])
+                bus_stop_start[GEOM]
+                .distance(gdf_bus_track_ordered.loc[line_pos_start, GEOM])
                 .values[0]
             )
 
             # Distances of all the line segments between bus stops
-            d1 = gdf_bus_track_ordered.loc[line_pos_start:line_pos_end, "geometry"].length.sum()
+            d1 = gdf_bus_track_ordered.loc[line_pos_start:line_pos_end, GEOM].length.sum()
 
             # Distance between bus stop end and end segment
             d2 = (
-                bus_stop_end["geometry"]
-                .distance(gdf_bus_track_ordered.loc[line_pos_end, "geometry"])
+                bus_stop_end[GEOM]
+                .distance(gdf_bus_track_ordered.loc[line_pos_end, GEOM])
                 .values[0]
             )
 
@@ -615,8 +626,8 @@ def build_adyacency_matrix(
 
             if control:
                 # Check when same distance where calculated in various bus_lines
-                if not np.isnan(ady_mat.loc[bus_stop_code_start, bus_stop_code_end]):
-                    val = ady_mat.loc[bus_stop_code_start, bus_stop_code_end]
+                if not np.isnan(adyacency_mat.loc[bus_stop_code_start, bus_stop_code_end]):
+                    val = adyacency_mat.loc[bus_stop_code_start, bus_stop_code_end]
                     dif = round(np.abs(val - dist), 1)
                     if dif >= diff_value:
                         msg_warn(
@@ -637,9 +648,8 @@ def build_adyacency_matrix(
                     )
 
             # Fill adyacency matrix
-            ady_mat.loc[bus_stop_code_start, bus_stop_code_start] = 0
-            ady_mat.loc[bus_stop_code_start, bus_stop_code_end] = dist
-            ady_mat.loc[bus_stop_code_end, bus_stop_code_start] = dist
+            adyacency_mat.loc[bus_stop_code_start, bus_stop_code_start] = 0
+            adyacency_mat.loc[bus_stop_code_start, bus_stop_code_end] = dist
 
     msg_done()
-    return ady_mat
+    return adyacency_mat
