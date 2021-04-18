@@ -37,7 +37,7 @@ def write_file_from_response(response, output: str):
 
 def write_spatial(gdf: gpd.GeoDataFrame, output: str):
     gdf.to_file(f"{output}.geojson", driver="GeoJSON")
-    msg_write(f"Saved to: {output}.geojson")
+    msg_write(f"Saved to: {output}.geojson\n")
 
 
 def load_stm_bus_data(month: str = MONTH, sample: int = None) -> pd.DataFrame:
@@ -124,13 +124,13 @@ def load_spatial_data(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
 def save_pickle_file(df: pd.DataFrame, filename: str):
     file_path = Path(PROCESSED_DATA_PATH) / f"{filename}.pkl"
     df.to_pickle(file_path)
-    msg_done(f"File saved to {file_path}")
+    msg_write(f"File saved to {file_path}\n")
 
 
 def save_df_to_csv(df: pd.DataFrame, filename: str):
     file_path = Path(PROCESSED_DATA_PATH) / f"{filename}.csv"
     df.to_csv(file_path)
-    msg_done(f"File saved to {file_path}")
+    msg_write(f"File saved to {file_path}\n")
 
 
 def load_pickle_file(filename: str, dtypes: Dict[str, object] = None) -> pd.DataFrame:

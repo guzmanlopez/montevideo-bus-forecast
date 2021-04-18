@@ -544,6 +544,8 @@ def fix_bus_stop_order(bus_line: str = "103", reorder: bool = False):
             gdf_bus_track_ordered[[ORDER, GEOM]],
             Path(PROCESSED_DATA_PATH) / "bus_tracks" / f"{FILE_BUS_TRACK_ORDERED}_{bus_line}",
         )
+    else:
+        msg_info("Order Ok")
 
 
 def build_adyacency_matrix(
@@ -551,9 +553,8 @@ def build_adyacency_matrix(
     diff_value: int = 50,
     bus_stop_code_control_1: int = 1283,
     bus_stop_code_control_2: int = 1284,
-) -> pd.DataFrame:
-
-    msg_process("Building adyacency matrix\n")
+) -> Tuple:
+    msg_process("Loading data\n")
     # Get all ordered bus stops and bus tracks from files
     all_bus_stops_ordered, all_bus_tracks_ordered = gpd.GeoDataFrame(), gpd.GeoDataFrame()
     for bus_line in BUS_LINES:
@@ -575,11 +576,15 @@ def build_adyacency_matrix(
         .reset_index(drop=True)
     )
 
+    msg_process("Building adyacency matrix")
+    msg_info("The weight represents the distance between linked bus stops\n")
     all_bus_stops = all_bus_stops_unique["COD_UBIC_P"]
-    adyacency_mat = pd.DataFrame(np.empty(shape=(len(all_bus_stops), len(all_bus_stops))))
-    adyacency_mat[:] = np.nan
-    adyacency_mat.columns = all_bus_stops.tolist()
-    adyacency_mat.index = all_bus_stops.tolist()
+    df_adyacency_mat = pd.DataFrame(np.empty(shape=(len(all_bus_stops), len(all_bus_stops))))
+    df_adyacency_mat[:] = np.nan
+    df_adyacency_mat.columns = all_bus_stops.tolist()
+    df_adyacency_mat.index = all_bus_stops.tolist()
+
+    df_from_to_weight = pd.DataFrame(columns=["from", "to", "weight"])
 
     # Calculate distances between bus stops on each bus line
     for bus_line in BUS_LINES:
@@ -601,8 +606,8 @@ def build_adyacency_matrix(
             bus_stop_code_end = bus_stop_end["COD_UBIC_P"].values[0]
 
             # Get linestrings from bus_tracks data
-            line_pos_start = bus_stop_start[ORDER].tolist()[0] + 1
-            line_pos_end = bus_stop_end[ORDER].tolist()[0] - 1
+            line_pos_start = bus_stop_start["index_bus_track"].tolist()[0] + 1
+            line_pos_end = bus_stop_end["index_bus_track"].tolist()[0] - 1
 
             # Distance between bus stop start and start segment
             d0 = (
@@ -624,10 +629,20 @@ def build_adyacency_matrix(
             # Get final distance
             dist = round(d0 + d1 + d2, 1)
 
+            # Fill adyacency matrix
+            df_adyacency_mat.loc[bus_stop_code_start, bus_stop_code_start] = 0
+            df_adyacency_mat.loc[bus_stop_code_start, bus_stop_code_end] = dist
+
+            # Fill source destination weight matrix
+            df_edge = pd.DataFrame(
+                {"from": [bus_stop_code_start], "to": [bus_stop_code_end], "weight": [dist]}
+            )
+            df_from_to_weight = df_from_to_weight.append(df_edge)
+
             if control:
                 # Check when same distance where calculated in various bus_lines
-                if not np.isnan(adyacency_mat.loc[bus_stop_code_start, bus_stop_code_end]):
-                    val = adyacency_mat.loc[bus_stop_code_start, bus_stop_code_end]
+                if not np.isnan(df_adyacency_mat.loc[bus_stop_code_start, bus_stop_code_end]):
+                    val = df_adyacency_mat.loc[bus_stop_code_start, bus_stop_code_end]
                     dif = round(np.abs(val - dist), 1)
                     if dif >= diff_value:
                         msg_warn(
@@ -642,14 +657,8 @@ def build_adyacency_matrix(
                     or (bus_stop_code_end == bus_stop_code_control_1)
                     and (bus_stop_code_start == bus_stop_code_control_2)
                 ):
-                    msg_info(
-                        f"Distance between bus stops {bus_stop_code_start} and {bus_stop_code_end}"
-                        f": {dist} m for bus line {bus_line}"
-                    )
-
-            # Fill adyacency matrix
-            adyacency_mat.loc[bus_stop_code_start, bus_stop_code_start] = 0
-            adyacency_mat.loc[bus_stop_code_start, bus_stop_code_end] = dist
-
+                    msg_info(f"Control:\n{df_edge}")
+    # Filter
+    df_from_to_weight = df_from_to_weight.loc[df_from_to_weight["weight"] != 0, :]
     msg_done()
-    return adyacency_mat
+    return df_adyacency_mat, df_from_to_weight
