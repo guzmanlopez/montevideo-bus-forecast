@@ -68,8 +68,8 @@ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poet
 source $HOME/.poetry/env
 
 # Iniciar poetry
-poetry init
 poetry shell
 poetry env use 3.9.1
 poetry env info
+poetry install
 ```
