@@ -194,10 +194,10 @@ def build_bus_line_tracks_and_stops(
     # Filter bus track by sevar_codigo
     gdf_bus_tracks_filtered = gdf_bus_tracks.copy()
     gdf_bus_tracks_filtered = gdf_bus_tracks.loc[
-        (gdf_bus_tracks["COD_VAR_01"].isin(sevar_codigo)) & (gdf_bus_tracks["DESC_VARIA"] == "A"),
+        (gdf_bus_tracks["COD_VARIAN"].isin(sevar_codigo)) & (gdf_bus_tracks["DESC_VARIA"] == "A"),
         :,
     ]
-    cod_varian = gdf_bus_tracks_filtered["COD_VAR_01"].unique()
+    cod_varian = gdf_bus_tracks_filtered["COD_VARIAN"].unique()
 
     # Get longest track
     gdf_bus_tracks_filtered = get_longest_track_from_bus_line(gdf_bus_tracks_filtered)
