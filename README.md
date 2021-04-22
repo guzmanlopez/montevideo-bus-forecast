@@ -73,3 +73,24 @@ poetry env use 3.9.1
 poetry env info
 poetry install
 ```
+
+- Instalar [PyTorch](https://pytorch.org/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/index.html) y [PyTorch Geometric Temporal](https://pytorch-geometric-temporal.readthedocs.io/en/latest/index.html)  
+
+```{sh}
+# Definir CPU (cpu) / GPU (cu101)
+export TORCH=1.8.0
+export CUDA=cpu 
+
+# Instalar PyTorch
+pip install torch==${TORCH}+${CUDA} -f https://download.pytorch.org/whl/torch_stable.html
+
+# Instalar PyTorch Geometric
+pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${TORCH}+${CUDA}.html
+pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-${TORCH}+${CUDA}.html
+pip install torch-cluster -f https://pytorch-geometric.com/whl/torch-${TORCH}+${CUDA}.html
+pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-${TORCH}+${CUDA}.html
+pip install torch-geometric
+
+# Instalar PyTorch Geometric Temporal
+pip install torch-geometric-temporal
+```
