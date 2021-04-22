@@ -8,7 +8,9 @@ from src.preparation.utils import load_stm_bus_data, save_pickle_file
 
 def pre_process_data(df: pd.DataFrame) -> pd.DataFrame:
     msg_process()
-    df.loc[:, "fecha_evento"] = pd.to_datetime(df["fecha_evento"], utc=False)
+    df.loc[:, "fecha_evento"] = pd.to_datetime(
+        df["fecha_evento"], infer_datetime_format=True, utc=False
+    )
     df.set_index("fecha_evento", inplace=True)
 
     # Add columns with month and day name
