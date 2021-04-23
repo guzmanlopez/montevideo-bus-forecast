@@ -114,11 +114,7 @@
 { "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 5302.0 }, "geometry": { "type": "Point", "coordinates": [ 589228.22871714248322, 6140579.107931677252054 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 5303.0 }, "geometry": { "type": "Point", "coordinates": [ 589291.78809753479436, 6140723.580075922422111 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 5501.0 }, "geometry": { "type": "Point", "coordinates": [ 588632.036253729485907, 6139962.533118632622063 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 5788.0 }, "geometry": { "type": "Point", "coordinates": [ 586907.507772916229442, 6139487.666644100099802 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 5789.0 }, "geometry": { "type": "Point", "coordinates": [ 588125.411730503081344, 6139703.269381165504456 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 5792.0 }, "geometry": { "type": "Point", "coordinates": [ 587906.556942774914205, 6139943.268578099086881 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 5988.0 }, "geometry": { "type": "Point", "coordinates": [ 580921.383057642146014, 6141357.145654558204114 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 5989.0 }, "geometry": { "type": "Point", "coordinates": [ 581073.516476110788062, 6141162.051352753303945 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 6092.0 }, "geometry": { "type": "Point", "coordinates": [ 579307.880693245446309, 6142661.417518920265138 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 6159.0 }, "geometry": { "type": "Point", "coordinates": [ 577285.186208087601699, 6143586.622092803008854 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "306", "COD_UBIC_P": 6242.0 }, "geometry": { "type": "Point", "coordinates": [ 579081.848865235690027, 6141491.155454532243311 ] } }

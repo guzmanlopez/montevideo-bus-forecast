@@ -16,6 +16,11 @@ pygeos = "^0.9"
 matplotlib = "^3.4.1"
 networkx = "^2.5.1"
 sklearn = "^0.0"
+torch = {version = "1.8.0", python = "^3.9", platform = "linux"}
+torch-scatter = {version = "^2.0.6", python = "^3.9", platform = "linux"}
+torch-sparse = {version = "^0.6.9", python = "^3.9", platform = "linux"}
+torch-cluster = {version = "^1.5.9", python = "^3.9", platform = "linux"}
+torch-spline-conv = {version = "^1.2.1", python = "^3.9", platform = "linux"}
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.21.0"

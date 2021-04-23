@@ -67,11 +67,10 @@
 { "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 3937.0, "index_bus_track": 3625, "order": 62 }, "geometry": { "type": "Point", "coordinates": [ 577105.937906573526561, 6135643.365263995714486 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 3379.0, "index_bus_track": 3665, "order": 63 }, "geometry": { "type": "Point", "coordinates": [ 577015.887980955652893, 6135460.169050303287804 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 3380.0, "index_bus_track": 3700, "order": 64 }, "geometry": { "type": "Point", "coordinates": [ 576909.897527436027303, 6135313.277445153333247 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 4465.0, "index_bus_track": 3750, "order": 65 }, "geometry": { "type": "Point", "coordinates": [ 576725.119521144777536, 6135392.493420886807144 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 3368.0, "index_bus_track": 3802, "order": 66 }, "geometry": { "type": "Point", "coordinates": [ 576549.359641387010925, 6135577.452876795083284 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 2114.0, "index_bus_track": 3844, "order": 67 }, "geometry": { "type": "Point", "coordinates": [ 576335.911368920584209, 6135557.704898187890649 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 2115.0, "index_bus_track": 3883, "order": 68 }, "geometry": { "type": "Point", "coordinates": [ 576205.565528162871487, 6135621.933740215376019 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 2116.0, "index_bus_track": 3925, "order": 69 }, "geometry": { "type": "Point", "coordinates": [ 576201.980882824282162, 6135838.147594823502004 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 2117.0, "index_bus_track": 3995, "order": 70 }, "geometry": { "type": "Point", "coordinates": [ 576203.690119351260364, 6136191.266956425271928 ] } }
+{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 3368.0, "index_bus_track": 3802, "order": 65 }, "geometry": { "type": "Point", "coordinates": [ 576549.359641387010925, 6135577.452876795083284 ] } },
+{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 2114.0, "index_bus_track": 3844, "order": 66 }, "geometry": { "type": "Point", "coordinates": [ 576335.911368920584209, 6135557.704898187890649 ] } },
+{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 2115.0, "index_bus_track": 3883, "order": 67 }, "geometry": { "type": "Point", "coordinates": [ 576205.565528162871487, 6135621.933740215376019 ] } },
+{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 2116.0, "index_bus_track": 3925, "order": 68 }, "geometry": { "type": "Point", "coordinates": [ 576201.980882824282162, 6135838.147594823502004 ] } },
+{ "type": "Feature", "properties": { "DESC_LINEA": "405", "COD_UBIC_P": 2117.0, "index_bus_track": 3995, "order": 69 }, "geometry": { "type": "Point", "coordinates": [ 576203.690119351260364, 6136191.266956425271928 ] } }
 ]
 }

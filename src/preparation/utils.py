@@ -75,8 +75,8 @@ def load_stm_bus_line_track() -> gpd.GeoDataFrame:
     msg_load(f"Loading {file_path}...")
     gdf = gpd.read_file(file_path)
     # Add fix to 183 because part of it track was not found
-    gdf.loc[gdf["COD_VARIAN"] == 7603, "DESC_VARIA"] = "A"
-    gdf.loc[gdf["COD_VARIAN"] == 7603, "COD_VARIAN"] = 8401
+    gdf.loc[gdf["COD_VAR_01"] == 7603, "DESC_VARIA"] = "A"
+    gdf.loc[gdf["COD_VAR_01"] == 7603, "COD_VAR_01"] = 8401
     msg_done()
     return gdf
 

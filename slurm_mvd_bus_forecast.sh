@@ -13,7 +13,6 @@ source /etc/profile.d/modules.sh
 
 poetry shell
 export PYTHONPATH=$PWD
-echo $PYTHONPATH
 python src/preparation/download_stm_bus_data.py
 python src/preparation/download_bus_stops.py
 python src/preparation/download_bus_tracks.py

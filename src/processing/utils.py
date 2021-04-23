@@ -61,7 +61,7 @@ def snap_points2lines(
 
 
 def get_longest_track_from_bus_line(gdf_bus_tracks: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    msg_process("get_longest_track_from_bus_line")
+    msg_process("get_longest_track_from_bus_line\n")
 
     # Select lowest ordinal origin and highest ordinal destination
     min_ordinal = gdf_bus_tracks["ORDINAL_OR"].min()
@@ -125,7 +125,7 @@ def cut_tracks_by_bus_stops(
 ) -> gpd.GeoDataFrame:
     # Get bus line name
     bus_line = "_".join(gdf_bus_stops["DESC_LINEA"].unique().tolist())
-    msg_process("cut_tracks_by_bus_stops for bus line")
+    msg_process("cut_tracks_by_bus_stops for bus line\n")
 
     # Merge all points and lines
     points = gdf_bus_stops[GEOM].unary_union
@@ -189,15 +189,15 @@ def build_bus_line_tracks_and_stops(
 ) -> Tuple:
 
     msg_bus(bus_line)
-    msg_process("build_bus_line_tracks_and_stops")
+    msg_process("build_bus_line_tracks_and_stops\n")
 
     # Filter bus track by sevar_codigo
     gdf_bus_tracks_filtered = gdf_bus_tracks.copy()
     gdf_bus_tracks_filtered = gdf_bus_tracks.loc[
-        (gdf_bus_tracks["COD_VARIAN"].isin(sevar_codigo)) & (gdf_bus_tracks["DESC_VARIA"] == "A"),
+        (gdf_bus_tracks["COD_VAR_01"].isin(sevar_codigo)) & (gdf_bus_tracks["DESC_VARIA"] == "A"),
         :,
     ]
-    cod_varian = gdf_bus_tracks_filtered["COD_VARIAN"].unique()
+    cod_varian = gdf_bus_tracks_filtered["COD_VAR_01"].unique()
 
     # Get longest track
     gdf_bus_tracks_filtered = get_longest_track_from_bus_line(gdf_bus_tracks_filtered)
@@ -545,7 +545,7 @@ def fix_bus_stop_order(bus_line: str = "103", reorder: bool = False):
             Path(PROCESSED_DATA_PATH) / "bus_tracks" / f"{FILE_BUS_TRACK_ORDERED}_{bus_line}",
         )
     else:
-        msg_info("Order Ok")
+        msg_info("Order OK")
 
 
 def build_adyacency_matrix(

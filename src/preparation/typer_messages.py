@@ -7,7 +7,7 @@ def msg_download(message: str = ""):
 
 
 def msg_write(message: str = ""):
-    typer.secho("✏ Writing data...", fg=typer.colors.BRIGHT_MAGENTA, bold=True)
+    typer.secho("💾 Writing data...", fg=typer.colors.BRIGHT_MAGENTA, bold=True)
     typer.secho(f"{message}", fg=typer.colors.MAGENTA)
 
 

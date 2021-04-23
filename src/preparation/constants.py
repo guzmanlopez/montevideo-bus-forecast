@@ -6,7 +6,10 @@ URL_HORARIOS_OMNIBUS_POR_PARADAS = (
     "http://www.montevideo.gub.uy/sites/default/files/datos/uptu_pasada_variante.zip"
 )
 URL_STM_PARADAS_OMNIBUS = "https://intgis.montevideo.gub.uy/sit/tmp/v_uptu_paradas.zip"
-URL_STM_RECORRIDOS_OMNIBUS = "https://intgis.montevideo.gub.uy/sit/tmp/v_uptu_lsv.zip?"
+# URL_STM_RECORRIDOS_OMNIBUS = "https://intgis.montevideo.gub.uy/sit/tmp/v_uptu_lsv.zip?"
+URL_STM_RECORRIDOS_OMNIBUS = (
+    "https://intgis.montevideo.gub.uy/sit/tmp/uptu_variante_no_maximal.zip"
+)
 
 # Files
 FILE_STM_VIAJES_PREFIX = "stm_viajes_"

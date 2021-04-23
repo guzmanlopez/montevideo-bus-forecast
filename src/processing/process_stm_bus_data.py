@@ -2,12 +2,13 @@ import pandas as pd
 import pretty_errors  # noqa
 import typer
 from src.preparation.constants import DAY_NAME_MAPPING, PROCESSED_FILE
-from src.preparation.typer_messages import msg_done, msg_process
+from src.preparation.typer_messages import msg_done, msg_info, msg_process
 from src.preparation.utils import load_stm_bus_data, save_pickle_file
 
 
 def pre_process_data(df: pd.DataFrame) -> pd.DataFrame:
-    msg_process()
+    msg_process("Pre-process raw data")
+    msg_info("Convert to timeseries and add time features")
     df.loc[:, "fecha_evento"] = pd.to_datetime(
         df["fecha_evento"], infer_datetime_format=True, utc=False
     )

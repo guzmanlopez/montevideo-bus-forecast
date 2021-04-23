@@ -47,8 +47,6 @@
 { "type": "Feature", "properties": { "DESC_LINEA": "G", "COD_UBIC_P": 2947.0 }, "geometry": { "type": "Point", "coordinates": [ 582724.382226806250401, 6140626.28975538816303 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "G", "COD_UBIC_P": 2948.0 }, "geometry": { "type": "Point", "coordinates": [ 582988.681549889268354, 6140425.081854472868145 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "G", "COD_UBIC_P": 2949.0 }, "geometry": { "type": "Point", "coordinates": [ 583247.597239731461741, 6140224.888966587372124 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "G", "COD_UBIC_P": 2950.0 }, "geometry": { "type": "Point", "coordinates": [ 583515.034840030479245, 6140018.106961348094046 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "G", "COD_UBIC_P": 2951.0 }, "geometry": { "type": "Point", "coordinates": [ 583660.558343456708826, 6139823.72562254127115 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "G", "COD_UBIC_P": 2969.0 }, "geometry": { "type": "Point", "coordinates": [ 576580.352936866693199, 6137417.416942123323679 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "G", "COD_UBIC_P": 2970.0 }, "geometry": { "type": "Point", "coordinates": [ 576805.460175358457491, 6137379.843640021048486 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "G", "COD_UBIC_P": 2971.0 }, "geometry": { "type": "Point", "coordinates": [ 577566.869604919687845, 6137376.287197132594883 ] } },

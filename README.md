@@ -76,21 +76,20 @@ poetry install
 
 - Instalar [PyTorch](https://pytorch.org/), [PyTorch Geometric](https://pytorch-geometric.readthedocs.io/en/latest/index.html) y [PyTorch Geometric Temporal](https://pytorch-geometric-temporal.readthedocs.io/en/latest/index.html)  
 
-```{sh}
-# Definir CPU (cpu) / GPU (cu101)
-export TORCH=1.8.0
-export CUDA=cpu 
+**Nota:** instalación de PyTorch sin soporte de GPU, para soporte con GPU modificar `+cpu`CUDA (Ejemplo: `+cu101`)
 
+```{sh}
 # Instalar PyTorch
-pip install torch==${TORCH}+${CUDA} -f https://download.pytorch.org/whl/torch_stable.html
+poetry add torch=1.8.0+cpu --platform linux --python "^3.9"
 
 # Instalar PyTorch Geometric
-pip install torch-scatter -f https://pytorch-geometric.com/whl/torch-${TORCH}+${CUDA}.html
-pip install torch-sparse -f https://pytorch-geometric.com/whl/torch-${TORCH}+${CUDA}.html
-pip install torch-cluster -f https://pytorch-geometric.com/whl/torch-${TORCH}+${CUDA}.html
-pip install torch-spline-conv -f https://pytorch-geometric.com/whl/torch-${TORCH}+${CUDA}.html
-pip install torch-geometric
+poetry add torch-scatter --platform linux --python "^3.9"
+poetry add torch-sparse --platform linux --python "^3.9"
+poetry add torch-cluster --platform linux --python "^3.9"
+poetry add torch-spline-conv --platform linux --python "^3.9"
+
+poetry add torch-geometric --platform linux --python "^3.9"
 
 # Instalar PyTorch Geometric Temporal
-pip install torch-geometric-temporal
+poetry add torch-geometric-temporal --platform linux --python "^3.9"
 ```
