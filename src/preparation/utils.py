@@ -123,11 +123,16 @@ def load_spatial_data(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
     return gdf
 
 
-def load_adyacency_data(adyacency: bool = False):
-    if adyacency:
-        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_ADYACENCY_MATRIX}.csv"
-    else:
-        file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_FROM_TO_WEIGHT}.csv"
+def load_adyacency_data():
+    file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_ADYACENCY_MATRIX}.csv"
+    msg_load(f"Loading {file_path}...")
+    df = pd.read_csv(file_path, index_col=0)
+    msg_done()
+    return df
+
+
+def load_edges_data():
+    file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_FROM_TO_WEIGHT}.csv"
     msg_load(f"Loading {file_path}...")
     df = pd.read_csv(file_path, index_col=0)
     msg_done()

@@ -30,6 +30,7 @@ from src.preparation.constants import (
 )
 from src.preparation.typer_messages import msg_bus, msg_done, msg_info, msg_process, msg_warn
 from src.preparation.utils import (
+    load_edges_data,
     load_spatial_data,
     load_stm_bus_line_track,
     load_stm_bus_stops,
@@ -662,3 +663,13 @@ def build_adyacency_matrix(
     df_from_to_weight = df_from_to_weight.loc[df_from_to_weight["weight"] != 0, :]
     msg_done()
     return df_adyacency_mat, df_from_to_weight
+
+
+def get_networkx_graph():
+    df_from_to_weight = load_edges_data()
+    G = nx.from_pandas_edgelist(
+        df_from_to_weight, source="from", target="to", edge_attr="weight", create_using=nx.DiGraph
+    )
+    G.name = "Bus lines of Montevideo"
+    msg_info(f"\n{nx.info(G)}\n")
+    return G
