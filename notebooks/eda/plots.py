@@ -3,7 +3,9 @@ import pandas as pd
 
 
 def plot_boardings_by_time(
-    df: pd.DataFrame, x: str = "fecha_evento", y: str = "cantidad_pasajeros"
+    df: pd.DataFrame,
+    x: str = "fecha_evento",
+    y: str = "cantidad_pasajeros",
 ):
     plot = (
         alt.Chart(df)
@@ -11,6 +13,7 @@ def plot_boardings_by_time(
         .encode(
             alt.X(f"{x}:T", title="Fecha"),
             alt.Y(f"{y}:Q", title="Cantidad de pasajeros"),
+            tooltip=[x] + [y],
         )
         .properties(width=700, height=400)
     )
@@ -39,6 +42,7 @@ def plot_boardings_by_day_name(
                 ],
             ),
             alt.Y(f"{y}:Q", title="Cantidad de pasajeros"),
+            tooltip=[x] + [y],
         )
         .properties(width=700, height=400)
     )
@@ -70,6 +74,7 @@ def plot_boardings_by_hour_and_day_name(
                     "Domingo",
                 ],
             ),
+            tooltip=[x] + [y] + ["nombre_dia"],
         )
         .properties(width=700, height=400)
     )
