@@ -21,6 +21,7 @@ torch-scatter = {version = "^2.0.6", python = "^3.9", platform = "linux"}
 torch-sparse = {version = "^0.6.9", python = "^3.9", platform = "linux"}
 torch-cluster = {version = "^1.5.9", python = "^3.9", platform = "linux"}
 torch-spline-conv = {version = "^1.2.1", python = "^3.9", platform = "linux"}
+bokeh = "^2.3.1"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.21.0"

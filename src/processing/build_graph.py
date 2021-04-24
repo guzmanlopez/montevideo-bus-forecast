@@ -1,3 +1,4 @@
+import numpy as np
 import pretty_errors  # noqa
 import typer
 from src.preparation.typer_messages import msg_process

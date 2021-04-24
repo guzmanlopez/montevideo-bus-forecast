@@ -671,5 +671,33 @@ def get_networkx_graph():
         df_from_to_weight, source="from", target="to", edge_attr="weight", create_using=nx.DiGraph
     )
     G.name = "Bus lines of Montevideo"
+
+    # Set edge attributes
+    distances = dict()
+    for u, v in G.edges():
+        distances[(u, v)] = G[u][v]["weight"]
+    nx.set_edge_attributes(G, distances, "distance")
+
+    # Set node attributes
+
+    # Load bus_stops positions to set as a node attribute
+    gdf_bus_stops = load_stm_bus_stops()
+
+    bus_stops_names, bus_stops_indegree = dict(), dict()
+    bus_stops_x, bus_stops_y = dict(), dict()
+
+    for u, v in G.in_degree():
+        bus_stops_names[u] = u
+        bus_stops_indegree[u] = v
+        x_pos = int(gdf_bus_stops.loc[gdf_bus_stops["COD_UBIC_P"] == u, "X"].unique()[0])
+        y_pos = int(gdf_bus_stops.loc[gdf_bus_stops["COD_UBIC_P"] == u, "Y"].unique()[0])
+        bus_stops_x[u] = x_pos
+        bus_stops_y[u] = y_pos
+
+    nx.set_node_attributes(G, bus_stops_names, "bus_stop")
+    nx.set_node_attributes(G, bus_stops_indegree, "in_degree")
+    nx.set_node_attributes(G, bus_stops_x, "x")
+    nx.set_node_attributes(G, bus_stops_y, "y")
+
     msg_info(f"\n{nx.info(G)}\n")
     return G
