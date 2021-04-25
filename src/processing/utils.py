@@ -42,7 +42,7 @@ def snap_points2lines(
     gdf_points: gpd.GeoDataFrame, gdf_tracks: gpd.GeoDataFrame, write: bool = True
 ):
     bus_line = gdf_points["DESC_LINEA"].unique()[0]
-    msg_process("Snap bus stations to bus tracks")
+    msg_process("Snap bus stations to bus tracks\n")
 
     track = gdf_tracks[GEOM].unary_union
     gdf_snap_points = gdf_points.copy()
@@ -61,8 +61,10 @@ def snap_points2lines(
     return gdf_snap_points
 
 
-def get_longest_track_from_bus_line(gdf_bus_tracks: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    msg_process("get_longest_track_from_bus_line\n")
+def get_longest_track_from_bus_line_based_ordinal(
+    gdf_bus_tracks: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    msg_process("Get longest track from bus line based on ordinality\n")
 
     # Select lowest ordinal origin and highest ordinal destination
     min_ordinal = gdf_bus_tracks["ORDINAL_OR"].min()
@@ -101,6 +103,18 @@ def get_longest_track_from_bus_line(gdf_bus_tracks: gpd.GeoDataFrame) -> gpd.Geo
     return gdf_union
 
 
+def get_longest_track_from_bus_line_based_length(
+    gdf_bus_tracks: gpd.GeoDataFrame,
+) -> gpd.GeoDataFrame:
+    msg_process("Get longest track from bus line based on length\n")
+
+    # Select longest track
+    max_length = gdf_bus_tracks["geometry"].length.max()
+    gdf_bus_tracks_longest = gdf_bus_tracks.loc[gdf_bus_tracks["geometry"].length == max_length, :]
+    msg_done()
+    return gdf_bus_tracks_longest
+
+
 def cut(line: LineString, distance: float):
     # Cuts a line in two at a distance from its starting point
     if distance <= 0.0 or distance >= line.length:
@@ -126,11 +140,12 @@ def cut_tracks_by_bus_stops(
 ) -> gpd.GeoDataFrame:
     # Get bus line name
     bus_line = "_".join(gdf_bus_stops["DESC_LINEA"].unique().tolist())
-    msg_process("cut_tracks_by_bus_stops for bus line\n")
+    msg_process("Cut tracks by bus stops for bus line\n")
 
     # Merge all points and lines
     points = gdf_bus_stops[GEOM].unary_union
-    multilinestring = ops.linemerge(gdf_bus_tracks[GEOM].unary_union)
+    # multilinestring = ops.linemerge(gdf_bus_tracks[GEOM].unary_union)
+    multilinestring = gdf_bus_tracks[GEOM].unary_union
 
     gdf_lines = gpd.GeoDataFrame()
 
@@ -155,15 +170,16 @@ def cut_tracks_by_bus_stops(
                 point._crs = crs
                 d = line.project(point)
                 split_line = cut(line, d)
-                if len(split_line) > 1:
-                    gdf_line = gpd.GeoDataFrame(
-                        {"line_index": i, "point_index": j, GEOM: split_line}
-                    )
-                else:
-                    gdf_line = gpd.GeoDataFrame(
-                        {"line_index": i, "point_index": None, GEOM: split_line}
-                    )
-                gdf_lines = gdf_lines.append(gdf_line)
+                if split_line is not None:
+                    if len(split_line) > 1:
+                        gdf_line = gpd.GeoDataFrame(
+                            {"line_index": i, "point_index": j, GEOM: split_line}
+                        )
+                    else:
+                        gdf_line = gpd.GeoDataFrame(
+                            {"line_index": i, "point_index": None, GEOM: split_line}
+                        )
+                    gdf_lines = gdf_lines.append(gdf_line)
 
     # Set CRS and remove duplicates
     gdf_lines = gdf_lines.set_crs(crs)
@@ -190,18 +206,18 @@ def build_bus_line_tracks_and_stops(
 ) -> Tuple:
 
     msg_bus(bus_line)
-    msg_process("build_bus_line_tracks_and_stops\n")
+    msg_process("Build bus line tracks and stops\n")
 
     # Filter bus track by sevar_codigo
     gdf_bus_tracks_filtered = gdf_bus_tracks.copy()
     gdf_bus_tracks_filtered = gdf_bus_tracks.loc[
-        (gdf_bus_tracks["COD_VAR_01"].isin(sevar_codigo)) & (gdf_bus_tracks["DESC_VARIA"] == "A"),
+        (gdf_bus_tracks["COD_VARIAN"].isin(sevar_codigo)) & (gdf_bus_tracks["DESC_VARIA"] == "A"),
         :,
     ]
-    cod_varian = gdf_bus_tracks_filtered["COD_VAR_01"].unique()
+    cod_varian = gdf_bus_tracks_filtered["COD_VARIAN"].unique()
 
     # Get longest track
-    gdf_bus_tracks_filtered = get_longest_track_from_bus_line(gdf_bus_tracks_filtered)
+    gdf_bus_tracks_filtered = get_longest_track_from_bus_line_based_length(gdf_bus_tracks_filtered)
 
     # Filter bus stops by sevar_codigo
     gdf_bus_stops_filtered = gdf_bus_stops.copy()
@@ -423,6 +439,9 @@ def get_order_of_bus_stops_along_track(
         rsuffix="bus_track",
     )
     gdf_stops_sorted = gdf_stops_sorted.sort_values(ORDER).reset_index(drop=True)
+
+    # Remove duplicates bus stops
+    gdf_stops_sorted = gdf_stops_sorted.drop_duplicates("COD_UBIC_P").reset_index(drop=True)
     gdf_stops_sorted[ORDER] = gdf_stops_sorted.index
 
     if write:
@@ -469,9 +488,8 @@ def simplify_linestring(
     return simple_line
 
 
-# TODO: fix 405 and 183 bus lines
-def fix_bus_stop_order(bus_line: str = "103", reorder: bool = False):
-    msg_process("Fix bus stop order by origin")
+def fix_bus_stop_order_ordinal(bus_line: str = "103", reorder: bool = False):
+    msg_process("Fix bus stop order using ordinal by origin")
 
     # Load bus tracks
     gdf_bus_tracks = load_stm_bus_line_track()
@@ -546,7 +564,87 @@ def fix_bus_stop_order(bus_line: str = "103", reorder: bool = False):
             Path(PROCESSED_DATA_PATH) / "bus_tracks" / f"{FILE_BUS_TRACK_ORDERED}_{bus_line}",
         )
     else:
-        msg_info("Order OK")
+        msg_info("Order OK\n")
+
+
+def fix_bus_stop_order_length(bus_line: str = "103", reorder: bool = False):
+    msg_process("Fix bus stop order by origin")
+
+    # Load bus tracks
+    gdf_bus_tracks = load_stm_bus_line_track()
+    gdf_origin_bus_track = gdf_bus_tracks.loc[
+        (gdf_bus_tracks["DESC_LINEA"] == bus_line) & (gdf_bus_tracks["DESC_VARIA"] == "A"), :
+    ]
+    gdf_origin_bus_track = get_longest_track_from_bus_line_based_length(gdf_origin_bus_track)
+    cod_varian = gdf_origin_bus_track["COD_VARIAN"].values[0]
+
+    # Load bus stops
+    gdf_bus_stops = load_stm_bus_stops()
+    gdf_origin_bus_stops = gdf_bus_stops.loc[
+        (gdf_bus_stops["DESC_LINEA"] == bus_line) & (gdf_bus_stops["COD_VARIAN"] == cod_varian), :
+    ]
+    lowest_ordinal = gdf_origin_bus_stops["ORDINAL"].min()
+    gdf_origin_bus_stops = gdf_origin_bus_stops.loc[
+        gdf_origin_bus_stops["ORDINAL"] == lowest_ordinal, :
+    ]
+
+    # Load ordered points
+    gdf_bus_stop_ordered = load_spatial_data(bus_line, type="bus_stop_ordered")
+    origin, end = gdf_bus_stop_ordered.iloc[[0]], gdf_bus_stop_ordered.iloc[[-1]]
+
+    # Calculate distances
+    dist_to_origin_idx = np.array(
+        [point.distance(origin[GEOM].tolist()[0]) for point in gdf_origin_bus_stops[GEOM]]
+    ).min()
+
+    dist_to_end_idx = np.array(
+        [point.distance(end[GEOM].tolist()[0]) for point in gdf_origin_bus_stops[GEOM]]
+    ).min()
+
+    if (dist_to_origin_idx > dist_to_end_idx) or reorder:
+        msg_info("Reorder bus line by origin\n")
+
+        # Reorder bus stops by inverting gdf
+        gdf_bus_stop_ordered = gdf_bus_stop_ordered[::-1].reset_index(drop=True)
+        gdf_bus_stop_ordered.loc[:, ORDER] = gdf_bus_stop_ordered.index
+
+        # Reorder bus tracks by inverting gdf
+        gdf_bus_track_ordered = load_spatial_data(bus_line, type="bus_track_ordered")
+        gdf_bus_track_ordered = gdf_bus_track_ordered[::-1].reset_index(drop=True)
+        gdf_bus_track_ordered.loc[:, "new_order"] = gdf_bus_track_ordered.index
+
+        # Fix index_bus_track in bus_stations
+        gdf_bus_stop_ordered = gdf_bus_stop_ordered.merge(
+            gdf_bus_track_ordered[[ORDER, "new_order"]],
+            how="left",
+            left_on="index_bus_track",
+            right_on=ORDER,
+        )
+        gdf_bus_stop_ordered["order"] = gdf_bus_stop_ordered["order_x"]
+        gdf_bus_stop_ordered["index_bus_track"] = gdf_bus_stop_ordered["new_order"]
+        gdf_bus_stop_ordered = gdf_bus_stop_ordered.drop(
+            columns=["order_x", "order_y", "new_order"]
+        )
+
+        write_spatial(
+            gdf_bus_stop_ordered,
+            Path(PROCESSED_DATA_PATH) / "bus_stops" / f"{FILE_BUS_STOP_ORDERED}_{bus_line}",
+        )
+
+        # Fix linestrings geometry
+        new_linestring_geometry = gdf_bus_track_ordered[GEOM].apply(lambda row: row.coords[::-1])
+        new_linestring_geometry = [
+            LineString(reveresed_xy) for reveresed_xy in new_linestring_geometry
+        ]
+        gdf_bus_track_ordered = gpd.GeoDataFrame(geometry=new_linestring_geometry, crs=CRS)
+        gdf_bus_track_ordered.loc[:, ORDER] = gdf_bus_track_ordered.index
+
+        write_spatial(
+            gdf_bus_track_ordered[[ORDER, GEOM]],
+            Path(PROCESSED_DATA_PATH) / "bus_tracks" / f"{FILE_BUS_TRACK_ORDERED}_{bus_line}",
+        )
+    else:
+        msg_info("Order OK\n")
 
 
 def build_adyacency_matrix(

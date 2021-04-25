@@ -26,7 +26,7 @@ def msg_process(message: str = ""):
 
 
 def msg_bus(bus_line: str = ""):
-    typer.secho(f"🚌 {bus_line}", fg=typer.colors.BRIGHT_WHITE, bold=True)
+    typer.secho(f" 🚌 {bus_line}", fg=typer.colors.BRIGHT_WHITE, bold=True)
 
 
 def msg_bus_stop(message: str = ""):

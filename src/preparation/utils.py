@@ -24,7 +24,6 @@ from src.preparation.typer_messages import (
     msg_bus,
     msg_bus_stop,
     msg_bus_track,
-    msg_done,
     msg_load,
     msg_write,
 )
@@ -50,7 +49,6 @@ def load_stm_bus_data(month: str = MONTH, sample: int = None) -> pd.DataFrame:
         usecols=DF_STM_VIAJES_COLS,
         nrows=sample,
     )
-    msg_done()
     return df
 
 
@@ -58,7 +56,6 @@ def load_stm_bus_time_by_bus_stop() -> pd.DataFrame:
     file_path = Path(RAW_DATA_PATH) / f"{FILE_STM_HORARIOS_BUSES_PARADAS}.zip"
     msg_load(f"Loading {file_path}...")
     df = pd.read_csv(file_path, delimiter=";", compression="zip")
-    msg_done()
     return df
 
 
@@ -66,7 +63,6 @@ def load_stm_bus_stops() -> gpd.GeoDataFrame:
     file_path = Path(RAW_DATA_PATH) / f"{FILE_STM_PARADAS}.geojson"
     msg_load(f"Loading {file_path}...")
     gdf = gpd.read_file(file_path)
-    msg_done()
     return gdf
 
 
@@ -74,10 +70,6 @@ def load_stm_bus_line_track() -> gpd.GeoDataFrame:
     file_path = Path(RAW_DATA_PATH) / f"{FILE_STM_RECORRIDOS}.geojson"
     msg_load(f"Loading {file_path}...")
     gdf = gpd.read_file(file_path)
-    # Add fix to 183 because part of it track was not found
-    gdf.loc[gdf["COD_VAR_01"] == 7603, "DESC_VARIA"] = "A"
-    gdf.loc[gdf["COD_VAR_01"] == 7603, "COD_VAR_01"] = 8401
-    msg_done()
     return gdf
 
 
@@ -119,7 +111,6 @@ def load_spatial_data(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
 
     msg_load(f"Loading file {file_path}...")
     gdf = gpd.read_file(file_path)
-    msg_done()
     return gdf
 
 
@@ -127,7 +118,6 @@ def load_adyacency_data():
     file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_ADYACENCY_MATRIX}.csv"
     msg_load(f"Loading {file_path}...")
     df = pd.read_csv(file_path, index_col=0)
-    msg_done()
     return df
 
 
@@ -135,7 +125,6 @@ def load_edges_data():
     file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_FROM_TO_WEIGHT}.csv"
     msg_load(f"Loading {file_path}...")
     df = pd.read_csv(file_path, index_col=0)
-    msg_done()
     return df
 
 
@@ -155,7 +144,6 @@ def load_pickle_file(filename: str, dtypes: Dict[str, object] = None) -> pd.Data
     file_path = Path(PROCESSED_DATA_PATH) / f"{filename}.pkl"
     msg_load(f"Loading {file_path}...")
     df = pd.read_pickle(file_path)
-    msg_done()
     if dtypes is not None:
         return df.astype(dtypes)
     else:

@@ -18,8 +18,8 @@ def main(bus_lines: List[str] = typer.Option(BUS_LINES), write: bool = typer.Opt
     # Load bus tracks
     gdf_bus_tracks = load_stm_bus_line_track()
 
+    # Build tracks
     for bus_line in bus_lines:
-        # Build tracks
         df_proc_filtered = df_proc.loc[df_proc["dsc_linea"] == bus_line, :]
         sevar_codigo = df_proc_filtered["sevar_codigo"].unique().tolist()
         build_bus_line_tracks_and_stops(
