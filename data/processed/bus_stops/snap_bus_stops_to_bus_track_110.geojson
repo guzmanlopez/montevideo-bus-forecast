@@ -32,7 +32,7 @@
 { "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 2312.0 }, "geometry": { "type": "Point", "coordinates": [ 579078.337224166374654, 6143650.59359519649297 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 2313.0 }, "geometry": { "type": "Point", "coordinates": [ 579184.226335451938212, 6143456.896830513142049 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 2314.0 }, "geometry": { "type": "Point", "coordinates": [ 579241.449361372157, 6143268.36753018759191 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 2546.0 }, "geometry": { "type": "Point", "coordinates": [ 579184.509707291261293, 6142163.943753926083446 ] } },
+{ "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 2546.0 }, "geometry": { "type": "Point", "coordinates": [ 579184.509707291494124, 6142163.943753926083446 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 2547.0 }, "geometry": { "type": "Point", "coordinates": [ 579177.855481812730432, 6142002.989786861464381 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 2548.0 }, "geometry": { "type": "Point", "coordinates": [ 579153.382377869333141, 6141629.174165118485689 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 2549.0 }, "geometry": { "type": "Point", "coordinates": [ 579056.666529489215463, 6140998.868028963916004 ] } },
@@ -68,6 +68,6 @@
 { "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 5213.0 }, "geometry": { "type": "Point", "coordinates": [ 579176.32287891372107, 6152597.713010941632092 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 5214.0 }, "geometry": { "type": "Point", "coordinates": [ 578937.652123932610266, 6151539.422393417917192 ] } },
 { "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 5312.0 }, "geometry": { "type": "Point", "coordinates": [ 578231.806191034731455, 6156004.556635702028871 ] } },
-{ "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 6194.0 }, "geometry": { "type": "Point", "coordinates": [ 579270.198964430135675, 6142625.754640356637537 ] } }
+{ "type": "Feature", "properties": { "DESC_LINEA": "110", "COD_UBIC_P": 6194.0 }, "geometry": { "type": "Point", "coordinates": [ 579270.198964430950582, 6142625.754640356637537 ] } }
 ]
 }

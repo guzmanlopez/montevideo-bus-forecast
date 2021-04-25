@@ -125,7 +125,7 @@ network_bokeh_plot(
     G,
     title="Grafo de paradas de ómnibus",
     colorby="in_degree",
-    add_labels=True,
+    add_labels=False,
     save=False,
 )
 
