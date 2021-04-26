@@ -44,7 +44,7 @@ def snap_points2lines(
     bus_line = gdf_points["DESC_LINEA"].unique()[0]
     msg_process("Snap bus stations to bus tracks\n")
 
-    track = gdf_tracks[GEOM].unary_union
+    track = ops.linemerge(gdf_tracks[GEOM].unary_union)
     gdf_snap_points = gdf_points.copy()
     gdf_snap_points[GEOM] = gdf_snap_points.apply(
         lambda row: track.interpolate(track.project(row[GEOM])),

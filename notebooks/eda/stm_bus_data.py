@@ -110,7 +110,6 @@ shared_bus_stops = (
     .astype({"COD_UBIC_P": int})
 )
 
-
 print("Paradas compartidas entre las líneas de ómnibus seleccionadas:\n")
 (
     shared_bus_stops.loc[shared_bus_stops["number_of_lines"] > 1, :]["lines"]
@@ -128,5 +127,4 @@ network_bokeh_plot(
     add_labels=False,
     save=False,
 )
-
 # %%
