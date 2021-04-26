@@ -105,6 +105,12 @@ BUS_LINE_TRACK_PARS = {
         "length": LINE_LENGTH_THRES,
         "tolerance": TOLERANCE_DIST,
     },
+    "546": {
+        "neighbors": NEIGHBORS,
+        "densify": LINE_DENSIFY,
+        "length": LINE_LENGTH_THRES,
+        "tolerance": TOLERANCE_DIST,
+    },
 }
 
 # Process data
@@ -127,4 +133,4 @@ DAY_NAME_MAPPING = {
     "Sunday": "Domingo",
 }
 
-BUS_LINES = ["103", "G", "183", "185", "306", "145", "163", "137", "405", "110"]
+BUS_LINES = ["103", "G", "183", "185", "306", "145", "163", "137", "405", "110", "546"]
