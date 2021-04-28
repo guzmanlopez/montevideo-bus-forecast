@@ -4,6 +4,7 @@
 # %%
 import altair as alt
 import geopandas as gpd
+import networkx as nx
 import pandas as pd
 from notebooks.eda.plots import (
     network_bokeh_plot,
@@ -11,14 +12,13 @@ from notebooks.eda.plots import (
     plot_boardings_by_hour_and_day_name,
     plot_boardings_by_time,
 )
-from src.preparation.constants import BUS_LINES, CRS, DAY_NAME_MAPPING, PROCESSED_FILE
+from src.preparation.constants import BUS_LINES, CRS, DAY_NAME_MAPPING, FILE_GRAPH, PROCESSED_FILE
 from src.preparation.utils import (
     load_pickle_file,
     load_spatial_data,
     load_stm_bus_line_track,
     load_stm_bus_stops,
 )
-from src.processing.utils import get_networkx_graph
 
 alt.renderers.enable("colab")
 # %%
@@ -118,7 +118,7 @@ print("Paradas compartidas entre las líneas de ómnibus seleccionadas:\n")
 )
 # %%
 # Cargar grafo
-G = get_networkx_graph()
+G = nx.read_gpickle(FILE_GRAPH)
 # %%
 network_bokeh_plot(
     G,
