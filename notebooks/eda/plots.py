@@ -92,7 +92,7 @@ def plot_boardings_by_hour_and_day_name(
 
 def network_bokeh_plot(
     G: nx.Graph = None,
-    hover_tooltips: List[Tuple] = [("Parada", "@bus_stop"), ("Líneas", "@in_degree")],
+    hover_tooltips: List[Tuple] = [("Parada", "@bus_stop"), ("In-Degree", "@in_degree")],
     title: str = "",
     width: int = 800,
     height: int = 800,

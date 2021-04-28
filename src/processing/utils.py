@@ -770,12 +770,6 @@ def get_networkx_graph():
     )
     G.name = "Bus lines of Montevideo"
 
-    # Set edge attributes
-    distances = dict()
-    for u, v in G.edges():
-        distances[(u, v)] = G[u][v]["weight"]
-    nx.set_edge_attributes(G, distances, "distance")
-
     # Set node attributes
 
     # Load bus_stops positions to set as a node attribute

@@ -1,8 +1,11 @@
+import json
 from pathlib import Path
 from typing import Dict
 
 import geopandas as gpd
+import networkx as nx
 import pandas as pd
+from networkx.readwrite import json_graph
 from src.preparation.constants import (
     DF_STM_VIAJES_COLS,
     FILE_ADYACENCY_MATRIX,
@@ -12,6 +15,7 @@ from src.preparation.constants import (
     FILE_BUS_TRACK_ORDERED,
     FILE_BUS_TRACK_PROC,
     FILE_FROM_TO_WEIGHT,
+    FILE_GRAPH,
     FILE_STM_HORARIOS_BUSES_PARADAS,
     FILE_STM_PARADAS,
     FILE_STM_RECORRIDOS,
@@ -148,3 +152,14 @@ def load_pickle_file(filename: str, dtypes: Dict[str, object] = None) -> pd.Data
         return df.astype(dtypes)
     else:
         return df
+
+
+def load_pickle_graph():
+    G = nx.read_gpickle(Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH}.pkl")
+    return G
+
+
+def load_json_graph():
+    with open(Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH}.json") as f:
+        G = json.load(f)
+    return json_graph.node_link_graph(G)
