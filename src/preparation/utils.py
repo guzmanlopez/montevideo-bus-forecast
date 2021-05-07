@@ -14,6 +14,7 @@ from src.preparation.constants import (
     FILE_BUS_STOP_SNAP,
     FILE_BUS_TRACK_ORDERED,
     FILE_BUS_TRACK_PROC,
+    FILE_FEATURES_MATRIX,
     FILE_FROM_TO_WEIGHT,
     FILE_GRAPH,
     FILE_STM_HORARIOS_BUSES_PARADAS,
@@ -120,6 +121,13 @@ def load_spatial_data(bus_line: str, type: str = "bus_stop") -> gpd.GeoDataFrame
 
 def load_adyacency_data():
     file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_ADYACENCY_MATRIX}.csv"
+    msg_load(f"Loading {file_path}...")
+    df = pd.read_csv(file_path, index_col=0)
+    return df
+
+
+def load_features_data():
+    file_path = Path(PROCESSED_DATA_PATH) / f"{FILE_FEATURES_MATRIX}.csv"
     msg_load(f"Loading {file_path}...")
     df = pd.read_csv(file_path, index_col=0)
     return df

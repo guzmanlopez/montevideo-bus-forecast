@@ -20,4 +20,5 @@ python src/processing/process_stm_bus_data.py
 python src/processing/build_bus_line_tracks_and_stops.py
 python src/processing/sort_bus_stops_along_bus_track.py
 python src/processing/build_adyacency_matrix.py
+python src/processing/build_features_matrix.py
 python src/processing/build_graph.py

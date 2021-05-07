@@ -26,11 +26,20 @@ from src.preparation.constants import (
     NEIGHBORS,
     ORDER,
     PROCESSED_DATA_PATH,
+    PROCESSED_FILE,
     TOLERANCE_DIST,
 )
-from src.preparation.typer_messages import msg_bus, msg_done, msg_info, msg_process, msg_warn
+from src.preparation.typer_messages import (
+    msg_bus,
+    msg_done,
+    msg_info,
+    msg_process,
+    msg_warn,
+)
 from src.preparation.utils import (
+    load_adyacency_data,
     load_edges_data,
+    load_pickle_file,
     load_spatial_data,
     load_stm_bus_line_track,
     load_stm_bus_stops,
@@ -793,3 +802,61 @@ def get_networkx_graph():
 
     msg_info(f"\n{nx.info(G)}\n")
     return G
+
+
+# TODO: add weather and COVID-19 data
+def get_features_matrix(
+    freq: str = "1H",
+):
+    # Load processed file
+    df = load_pickle_file(PROCESSED_FILE)
+
+    # Filter by bus lines
+    df = df.loc[df["dsc_linea"].isin(BUS_LINES), :]
+
+    # Filter by bus stops
+    df_adyacency_mat = load_adyacency_data()
+    bus_stops = df_adyacency_mat.index.tolist()
+    df = df.loc[df["codigo_parada_origen"].isin(bus_stops), :]
+
+    # Select columns
+    df = df[["cantidad_pasajeros", "codigo_parada_origen"]]
+    df = df.astype({"cantidad_pasajeros": "int", "codigo_parada_origen": "int"})
+
+    # Time aggregation
+    df = (
+        df.groupby([pd.Grouper(freq=freq), "codigo_parada_origen"])["cantidad_pasajeros"]
+        .sum()
+        .reset_index()
+    )
+
+    # Format columns
+    df = df.rename(
+        columns={
+            "fecha_evento": "datetime",
+            "codigo_parada_origen": "bus_stop",
+            "cantidad_pasajeros": "y",
+        }
+    )
+
+    # Load features matrix
+    df["datetime"] = pd.to_datetime(df["datetime"])
+    timeseries = pd.date_range(start=df["datetime"].min(), end=df["datetime"].max(), freq=freq)
+    df_timeseries_complete = pd.DataFrame(timeseries, columns=["datetime"])
+    df_timeseries_complete["time_index"] = range(0, df_timeseries_complete.shape[0])
+
+    df_bus_stops = pd.DataFrame({"bus_stop": bus_stops})
+
+    # Get all combinations of times and bus stops
+    df_timeseries_complete = pd.merge(df_timeseries_complete, df_bus_stops, how="cross")
+
+    # Merge with features data
+    df = pd.merge(
+        df_timeseries_complete.astype({"datetime": "str"}),
+        df.astype({"datetime": "str"}),
+        how="left",
+        on=["datetime", "bus_stop"],
+    )
+    df = df.fillna(0).astype({"y": "int"})
+
+    return df

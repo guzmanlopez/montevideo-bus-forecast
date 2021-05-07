@@ -26,7 +26,9 @@ FILE_BUS_STOP_ORDERED = "bus_stop_ordered"
 FILE_BUS_TRACK_ORDERED = "bus_track_ordered"
 FILE_ADYACENCY_MATRIX = "adyacency_matrix"
 FILE_FROM_TO_WEIGHT = "from_to_weight"
+FILE_FEATURES_MATRIX = "features_matrix"
 FILE_GRAPH = "nx_graph"
+FILE_GRAPH_FEATURES = "nx_graph_features"
 
 # Fields
 GEOM = "geometry"
