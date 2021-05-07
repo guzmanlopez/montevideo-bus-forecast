@@ -5,7 +5,14 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 from bokeh.io import output_notebook, show
-from bokeh.models import Circle, ColumnDataSource, LabelSet, MultiLine, StaticLayoutProvider, Title
+from bokeh.models import (
+    Circle,
+    ColumnDataSource,
+    LabelSet,
+    MultiLine,
+    StaticLayoutProvider,
+    Title,
+)
 from bokeh.palettes import Viridis8
 from bokeh.plotting import figure, from_networkx
 from bokeh.transform import linear_cmap
@@ -113,7 +120,7 @@ def network_bokeh_plot(
     fixed_layout = dict()
 
     for node in G.nodes:
-        fixed_layout[node] = [G.nodes[node]["x"], G.nodes[node]["y"]]
+        fixed_layout[node] = [G.nodes[node]["lon"], G.nodes[node]["lat"]]
     graph_renderer.layout_provider = StaticLayoutProvider(graph_layout=fixed_layout)
 
     # Create a plot
@@ -146,14 +153,14 @@ def network_bokeh_plot(
     plot.renderers.append(graph_renderer)
 
     if add_labels:
-        x, y = zip(*graph_renderer.layout_provider.graph_layout.values())
+        lon, lat = zip(*graph_renderer.layout_provider.graph_layout.values())
         node_labels = list(G.nodes())
         source = ColumnDataSource(
-            {"x": x, "y": y, "name": [node_labels[i] for i in range(len(x))]}
+            {"lon": lon, "lat": lat, "name": [node_labels[i] for i in range(len(lon))]}
         )
         labels = LabelSet(
-            x="x",
-            y="y",
+            x="lon",
+            y="lat",
             text="name",
             source=source,
             background_fill_color="white",

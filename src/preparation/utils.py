@@ -17,6 +17,7 @@ from src.preparation.constants import (
     FILE_FEATURES_MATRIX,
     FILE_FROM_TO_WEIGHT,
     FILE_GRAPH,
+    FILE_GRAPH_FEATURES,
     FILE_STM_HORARIOS_BUSES_PARADAS,
     FILE_STM_PARADAS,
     FILE_STM_RECORRIDOS,
@@ -162,12 +163,19 @@ def load_pickle_file(filename: str, dtypes: Dict[str, object] = None) -> pd.Data
         return df
 
 
-def load_pickle_graph():
-    G = nx.read_gpickle(Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH}.pkl")
-    return G
+def load_pickle_graph(with_features: bool = False):
+    if with_features:
+        return nx.read_gpickle(Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH_FEATURES}.pkl")
+    else:
+        return nx.read_gpickle(Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH}.pkl")
 
 
-def load_json_graph():
-    with open(Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH}.json") as f:
-        G = json.load(f)
-    return json_graph.node_link_graph(G)
+def load_json_graph(with_features: bool = False):
+    if with_features:
+        with open(Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH_FEATURES}.json") as f:
+            G = json.load(f)
+        return json_graph.node_link_graph(G)
+    else:
+        with open(Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH}.json") as f:
+            G = json.load(f)
+        return json_graph.node_link_graph(G)

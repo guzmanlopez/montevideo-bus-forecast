@@ -39,6 +39,7 @@ from src.preparation.typer_messages import (
 from src.preparation.utils import (
     load_adyacency_data,
     load_edges_data,
+    load_features_data,
     load_pickle_file,
     load_spatial_data,
     load_stm_bus_line_track,
@@ -772,7 +773,8 @@ def build_adyacency_matrix(
     return df_adyacency_mat, df_from_to_weight
 
 
-def get_networkx_graph():
+def get_networkx_graph() -> nx.DiGraph:
+    msg_process("Building Networkx Directed graph\n")
     df_from_to_weight = load_edges_data()
     G = nx.from_pandas_edgelist(
         df_from_to_weight, source="from", target="to", edge_attr="weight", create_using=nx.DiGraph
@@ -797,17 +799,41 @@ def get_networkx_graph():
 
     nx.set_node_attributes(G, bus_stops_names, "bus_stop")
     nx.set_node_attributes(G, bus_stops_indegree, "in_degree")
-    nx.set_node_attributes(G, bus_stops_x, "x")
-    nx.set_node_attributes(G, bus_stops_y, "y")
+    nx.set_node_attributes(G, bus_stops_x, "lon")
+    nx.set_node_attributes(G, bus_stops_y, "lat")
 
     msg_info(f"\n{nx.info(G)}\n")
+    return G
+
+
+def add_target_to_graph(G: nx.DiGraph, target: str = "y"):
+    msg_process("Get networkx graph with target\n")
+    msg_info(f"Adding target: {target}\n")
+    df_features = load_features_data()
+    dtargets = dict()
+    for node in G.nodes:
+        node_targets = df_features.loc[df_features["bus_stop"] == node, target].to_numpy().tolist()
+        dtargets[node] = node_targets
+    nx.set_node_attributes(G, dtargets, "y")
+    return G
+
+
+def add_features_to_graph(G: nx.DiGraph, features: List = ["time_index"]):
+    msg_process("Get networkx graph with features\n")
+    msg_info(f"Adding features: {features}\n")
+    df_feat = load_features_data()
+    dfeat = dict()
+    for node in G.nodes:
+        node_features = df_feat.loc[df_feat["bus_stop"] == node, features].to_numpy().tolist()
+        dfeat[node] = node_features
+    nx.set_node_attributes(G, dfeat, "X")
     return G
 
 
 # TODO: add weather and COVID-19 data
 def get_features_matrix(
     freq: str = "1H",
-):
+) -> pd.DataFrame:
     # Load processed file
     df = load_pickle_file(PROCESSED_FILE)
 
