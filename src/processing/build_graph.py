@@ -18,7 +18,7 @@ from src.processing.utils import (
 )
 
 
-def main(target: str = typer.Option("y"), features: List[str] = typer.Option(["time_index"])):
+def main(target: str = typer.Option("y"), features: List[str] = typer.Option(["y"])):
     G = get_networkx_graph()
     nx.write_gpickle(G, Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH}.pkl")
     with open(Path(PROCESSED_DATA_PATH) / f"{FILE_GRAPH}.json", "w") as f:

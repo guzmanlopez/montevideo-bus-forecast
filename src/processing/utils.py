@@ -818,14 +818,17 @@ def add_target_to_graph(G: nx.DiGraph, target: str = "y"):
     return G
 
 
-def add_features_to_graph(G: nx.DiGraph, features: List = ["time_index"]):
+def add_features_to_graph(G: nx.DiGraph, features: List = ["y"]):
     msg_process("Get networkx graph with features\n")
-    msg_info(f"Adding features: {features}\n")
+    msg_info(f"Adding features: {' '.join([f for f in features])}\n")
     df_feat = load_features_data()
     dfeat = dict()
     for node in G.nodes:
-        node_features = df_feat.loc[df_feat["bus_stop"] == node, features].to_numpy().tolist()
-        dfeat[node] = node_features
+        dfeat_node = dict()
+        for feature in features:
+            node_feature = df_feat.loc[df_feat["bus_stop"] == node, feature].to_numpy().tolist()
+            dfeat_node[feature] = node_feature
+        dfeat[node] = dfeat_node
     nx.set_node_attributes(G, dfeat, "X")
     return G
 
