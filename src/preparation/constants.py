@@ -136,3 +136,6 @@ DAY_NAME_MAPPING = {
 }
 
 BUS_LINES = ["103", "G", "183", "185", "306", "145", "163", "137", "405", "110", "546"]
+
+# Model parameters
+KERNEL_SIZE = 3

@@ -23,6 +23,7 @@ torch-cluster = {version = "^1.5.9", python = "^3.9", platform = "linux"}
 torch-spline-conv = {version = "^1.2.1", python = "^3.9", platform = "linux"}
 bokeh = "^2.3.1"
 isort = {extras = ["black"], version = "^5.8.0"}
+pytorch-lightning = "^1.3.0"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.21.0"

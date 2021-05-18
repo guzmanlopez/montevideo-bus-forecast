@@ -60,7 +60,7 @@ pyenv local 3.9.1
 pyenv shell 3.9.1
 ```
 
-- Instalar [poetry](https://python-poetry.org/) como gestor de librerías y depndencias de Python
+- Instalar [poetry](https://python-poetry.org/) como gestor de librerías y dependencias de Python
 
 ```{sh}
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
@@ -87,9 +87,11 @@ poetry add torch-scatter --platform linux --python "^3.9"
 poetry add torch-sparse --platform linux --python "^3.9"
 poetry add torch-cluster --platform linux --python "^3.9"
 poetry add torch-spline-conv --platform linux --python "^3.9"
-
 poetry add torch-geometric --platform linux --python "^3.9"
 
 # Instalar PyTorch Geometric Temporal
 poetry add torch-geometric-temporal --platform linux --python "^3.9"
+
+# Instalar PyTorch Lightning
+poetry add pytorch-lightning
 ```
