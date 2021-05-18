@@ -6,8 +6,13 @@ from torch_geometric_temporal.signal import StaticGraphTemporalSignal
 
 
 class MontevideoBusDatasetLoader(object):
-    """A dataset of Montevideo bus stops.
-    # TODO: complete dataset description
+    """A dataset of inflow passenger at bus stop level from Montevideo city.
+    This dataset comprises hourly inflow passenger data at bus stop level for 11 bus lines during
+    October 2020 from Montevideo city (Uruguay). The bus lines selected are the ones that carry
+    people to the center of the city and they load more than 25% of the total daily inflow traffic.
+    This is a curated dataset made from different data sources of the Metropolitan Transportation
+    System (STM) of Montevideo. These datasets are freely available to anyone in the National
+    Catalog of Open Data from the government of Uruguay (https://catalogodatos.gub.uy/).
     """
 
     def __init__(self):
@@ -58,7 +63,7 @@ class MontevideoBusDatasetLoader(object):
     def get_dataset(
         self, lags: int = 4, target_var: str = "y", feature_vars: List[str] = ["y"]
     ) -> StaticGraphTemporalSignal:
-        """Returning the MontevideoBus demand data iterator.
+        """Returning the MontevideoBus passenger inflow data iterator.
 
         Parameters
         ----------
