@@ -10,9 +10,11 @@ class MontevideoBusDatasetLoader(object):
     This dataset comprises hourly inflow passenger data at bus stop level for 11 bus lines during
     October 2020 from Montevideo city (Uruguay). The bus lines selected are the ones that carry
     people to the center of the city and they load more than 25% of the total daily inflow traffic.
-    This is a curated dataset made from different data sources of the Metropolitan Transportation
-    System (STM) of Montevideo. These datasets are freely available to anyone in the National
-    Catalog of Open Data from the government of Uruguay (https://catalogodatos.gub.uy/).
+    Vertices are bus stops, edges are links between bus stops when a bus line connects them and the
+    weight represent the road distance. The target is the passenger inflow. This is a curated
+    dataset made from different data sources of the Metropolitan Transportation System (STM) of
+    Montevideo. These datasets are freely available to anyone in the National Catalog of Open Data
+    from the government of Uruguay (https://catalogodatos.gub.uy/).
     """
 
     def __init__(self):
